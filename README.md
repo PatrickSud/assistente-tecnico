@@ -128,5 +128,5 @@ Patrick Godoy
 
 ---
 
-**Versão**: 1.0  
-**Última atualização**: Novembro 2025
+**Versão**: 1.2.0  
+**Última atualização**: 28 de Novembro de 2025

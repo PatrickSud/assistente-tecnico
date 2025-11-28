@@ -14,11 +14,11 @@ from flask import Flask, render_template, jsonify, request, send_from_directory
 # --- Configurações Globais ---
 NOME_PROCESSO_AGENTE = "Agente_comunicacao.exe"
 NOME_PROCESSO_SERVICO_DOMINIO = "ServicoDominioAtendimento.exe"
-PASTA_AGENTE_BASE = r"C:\Contabil\Agente de Comunicação com o Domínio Atendimento"
-PASTA_DOWNLOAD_AGENTE = os.path.join(PASTA_AGENTE_BASE, "DownloadAgente")
+PASTA_AGENTE_BASE_REL = r"Contabil\Agente de Comunicação com o Domínio Atendimento"
+PASTA_DOWNLOAD_AGENTE_REL = os.path.join(PASTA_AGENTE_BASE_REL, "DownloadAgente")
 NOME_INSTALADOR_AGENTE = "InstalaAgente.exe"
-CAMINHO_COMPLETO_INSTALADOR = os.path.join(PASTA_DOWNLOAD_AGENTE, NOME_INSTALADOR_AGENTE)
-CAMINHO_AGENTE_POS_INSTALACAO = os.path.join(PASTA_AGENTE_BASE, NOME_PROCESSO_AGENTE)
+# CAMINHO_COMPLETO_INSTALADOR removido em favor de resolução dinâmica
+# CAMINHO_AGENTE_POS_INSTALACAO removido em favor de resolução dinâmica
 URL_BASE_DOWNLOAD = "http://download.dominiosistemas.com.br/hide/agente/Agente-Comunicacao"
 
 # Configuração de Log
@@ -108,6 +108,33 @@ def is_admin():
     except Exception:
         return False
 
+def find_existing_drive():
+    """Retorna a letra da unidade onde o agente está instalado (ex: 'C:\\') ou None."""
+    drives = [f"{d}:\\" for d in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+    for drive in drives:
+        if os.path.exists(drive):
+            candidate = os.path.join(drive, PASTA_AGENTE_BASE_REL, NOME_PROCESSO_AGENTE)
+            if os.path.exists(candidate):
+                return drive
+    return None
+
+def get_resolved_paths():
+    """Retorna (base_dir, download_dir, installer_path) resolvidos dinamicamente."""
+    drive = find_existing_drive() or "C:\\"
+    base_dir = os.path.join(drive, PASTA_AGENTE_BASE_REL)
+    download_dir = os.path.join(drive, PASTA_DOWNLOAD_AGENTE_REL)
+    installer_path = os.path.join(download_dir, NOME_INSTALADOR_AGENTE)
+    return base_dir, download_dir, installer_path
+
+def find_agent_executable():
+    """Procura o executável do agente usando a lógica de drives."""
+    drive = find_existing_drive()
+    if drive:
+        full_path = os.path.join(drive, PASTA_AGENTE_BASE_REL, NOME_PROCESSO_AGENTE)
+        logging.info(f"Agente encontrado em: {full_path}")
+        return full_path
+    return None
+
 def terminate_process(process_name):
     logging.info(f"Tentando finalizar processo: {process_name}")
     try:
@@ -130,7 +157,10 @@ def terminate_process(process_name):
 def download_worker(version):
     global app_state
     url = f"{URL_BASE_DOWNLOAD}/{version}/{NOME_INSTALADOR_AGENTE}"
-    destination_path = CAMINHO_COMPLETO_INSTALADOR
+    url = f"{URL_BASE_DOWNLOAD}/{version}/{NOME_INSTALADOR_AGENTE}"
+    
+    _, _, destination_path = get_resolved_paths()
+    logging.info(f"Definindo caminho de download para: {destination_path}")
     
     app_state["status"] = "downloading"
     app_state["progress"] = 0
@@ -235,7 +265,9 @@ def start_download():
 
 @app.route('/api/install', methods=['POST'])
 def start_install():
-    if not os.path.exists(CAMINHO_COMPLETO_INSTALADOR):
+    _, _, installer_path = get_resolved_paths()
+    
+    if not os.path.exists(installer_path):
         return jsonify({"success": False, "message": "Instalador não encontrado."}), 404
     
     try:
@@ -245,7 +277,7 @@ def start_install():
         startupinfo.wShowWindow = 9 # SW_RESTORE (Tenta restaurar se estiver minimizado)
         
         # Inicia o processo
-        subprocess.Popen([CAMINHO_COMPLETO_INSTALADOR], startupinfo=startupinfo)
+        subprocess.Popen([installer_path], startupinfo=startupinfo)
         
         return jsonify({"success": True, "message": "Instalador iniciado."})
     except Exception as e:
@@ -253,16 +285,18 @@ def start_install():
 
 @app.route('/api/verify', methods=['POST'])
 def verify_install():
-    if os.path.exists(CAMINHO_AGENTE_POS_INSTALACAO):
+    agent_path = find_agent_executable()
+    
+    if agent_path:
         try:
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = 9 # SW_RESTORE
             
-            subprocess.Popen([CAMINHO_AGENTE_POS_INSTALACAO], startupinfo=startupinfo)
+            subprocess.Popen([agent_path], startupinfo=startupinfo)
             return jsonify({"success": True, "message": "Agente encontrado e iniciado."})
         except Exception as e:
-             return jsonify({"success": True, "message": f"Agente encontrado, mas erro ao iniciar: {e}"}) # Consideramos sucesso pois o arquivo existe
+             return jsonify({"success": True, "message": f"Agente encontrado em {agent_path}, mas erro ao iniciar: {e}"}) # Consideramos sucesso pois o arquivo existe
     else:
         return jsonify({"success": False, "message": "Agente não encontrado após instalação."})
 

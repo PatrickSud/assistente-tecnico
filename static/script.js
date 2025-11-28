@@ -107,12 +107,16 @@ function startPollingStatus() {
             if (state.status === 'download_complete') {
                 clearInterval(pollInterval);
                 
-                // Reset UI for standard flow
-                const manualUi = document.getElementById('manual-install-ui');
-                if (manualUi) manualUi.style.display = 'block';
-                document.getElementById('install-check-area').style.display = 'none';
-
-                setTimeout(() => goToStep('step-install'), 1000);
+                // Automatically run the installer and transition to install step
+                setTimeout(async () => {
+                    // Pre-configure UI to avoid flicker
+                    const manualUi = document.getElementById('manual-install-ui');
+                    if (manualUi) manualUi.style.display = 'none';
+                    document.getElementById('install-check-area').style.display = 'block';
+                    
+                    goToStep('step-install');
+                    await runInstaller();
+                }, 500);
             } else if (state.status === 'error') {
                 clearInterval(pollInterval);
                 showError(state.message);
