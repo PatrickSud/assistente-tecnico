@@ -35,13 +35,54 @@
           <i class="fa-solid fa-robot"></i>
           <h1>Assistente de Atualização</h1>
         </div>
-        <p class="subtitle">Agente de Comunicação</p>
+        <p class="subtitle" id="app-subtitle">Agente de Comunicação</p>
       </header>
 
+
       <main id="wizard">
-        <!-- Step 1: Welcome & Init -->
-        <div class="step active" id="step-welcome">
+        <!-- Step 0: Application Selection -->
+        <div class="step active" id="step-selection">
           <div class="card">
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2>Selecione a Aplicação</h2>
+            <p>Escolha qual aplicação você deseja atualizar:</p>
+            
+            <div class="app-selection-grid">
+              <button class="app-card" onclick="selectApp('agente')">
+                <div class="app-icon">
+                  <i class="fa-solid fa-arrow-up"></i>
+                </div>
+                <h3>Agente de Comunicação</h3>
+              </button>
+              
+              <button class="app-card" onclick="selectApp('dominio')">
+                <div class="app-icon">
+                  <i class="fa-solid fa-calculator"></i>
+                </div>
+                <h3>Domínio Contábil</h3>
+              </button>
+              
+              <button class="app-card" onclick="selectApp('buscanfe')">
+                <div class="app-icon">
+                  <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <h3>Busca NF-e</h3>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: Preparation -->
+        <div class="step" id="step-welcome">
+          <div class="card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container">
               <i class="fa-solid fa-power-off"></i>
             </div>
@@ -56,9 +97,16 @@
           </div>
         </div>
 
+
         <!-- Step 2: Version Input -->
         <div class="step" id="step-version">
           <div class="card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container">
               <i class="fa-solid fa-code-branch"></i>
             </div>
@@ -87,6 +135,12 @@
         <!-- Step 3: Downloading -->
         <div class="step" id="step-download">
           <div class="card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container pulse">
               <i class="fa-solid fa-cloud-arrow-down"></i>
             </div>
@@ -105,6 +159,12 @@
         <!-- Step 4: Install -->
         <div class="step" id="step-install">
           <div class="card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container">
               <i class="fa-solid fa-compact-disc"></i>
             </div>
@@ -148,6 +208,12 @@
         <!-- Step 5: Success -->
         <div class="step" id="step-success">
           <div class="card success-card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container success-icon">
               <i class="fa-solid fa-check-circle"></i>
             </div>
@@ -178,6 +244,12 @@
         <!-- Error State -->
         <div class="step" id="step-error">
           <div class="card error-card">
+            <button class="btn-back" onclick="goBack()" title="Voltar">
+              <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="icon-container error-icon">
               <i class="fa-solid fa-times-circle"></i>
             </div>
@@ -191,9 +263,6 @@
       </main>
 
       <footer>
-        <button class="btn-exit" onclick="exitApp()" title="Finalizar Assistente">
-          <i class="fa-solid fa-stop"></i>
-        </button>
         <p>Desenvolvido por Patrick Godoy</p>
       </footer>
     </div>

@@ -112,6 +112,64 @@ h1 {
     transform: translateY(-2px);
 }
 
+/* Back Button */
+.btn-back {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 8px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-back:hover {
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+/* Exit Button - Top Right */
+.btn-exit-top {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 8px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-exit-top:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+    transform: scale(1.1);
+}
+
+.card {
+    position: relative;
+}
+
 .icon-container {
     width: 70px;
     height: 70px;
@@ -487,4 +545,73 @@ footer p {
 
 .btn-dismiss:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* Application Selection Grid */
+.app-selection-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.app-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 25px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.app-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(238, 242, 255, 1) 100%);
+}
+
+.app-card .app-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+}
+
+.app-card:hover .app-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.app-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.app-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Adjust card padding since descriptions removed */
+.app-card {
+    padding: 20px;
+    gap: 10px;
 }

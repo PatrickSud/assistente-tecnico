@@ -3,6 +3,10 @@ let pollInterval = null;
 
 // Check for updates on page load
 window.addEventListener('DOMContentLoaded', async () => {
+    // Hide subtitle on selection screen
+    const subtitle = document.getElementById('app-subtitle');
+    if (subtitle) subtitle.style.display = 'none';
+    
     setTimeout(checkForUpdates, 2000); // Wait 2s for backend to check
 });
 
@@ -36,6 +40,50 @@ function showUpdateNotification(currentVer, latestVer, downloadUrl) {
         </div>
     `;
     document.body.appendChild(notification);
+}
+
+let selectedApp = '';
+let navigationHistory = ['step-selection'];
+
+function selectApp(appType) {
+    selectedApp = appType;
+    
+    // Update header based on selection
+    const subtitle = document.getElementById('app-subtitle');
+    if (subtitle) {
+        subtitle.style.display = 'block';
+        switch(appType) {
+            case 'agente':
+                subtitle.textContent = 'Agente de Comunicação';
+                break;
+            case 'dominio':
+                subtitle.textContent = 'Domínio Contábil';
+                break;
+            case 'buscanfe':
+                subtitle.textContent = 'Busca NF-e';
+                break;
+        }
+    }
+    
+    // Navigate to preparation screen
+    navigationHistory.push('step-welcome');
+    goToStep('step-welcome');
+}
+
+function goBack() {
+    // Remove current step from history
+    if (navigationHistory.length > 1) {
+        navigationHistory.pop();
+        const previousStep = navigationHistory[navigationHistory.length - 1];
+        
+        // Hide subtitle if going back to selection
+        if (previousStep === 'step-selection') {
+            const subtitle = document.getElementById('app-subtitle');
+            if (subtitle) subtitle.style.display = 'none';
+        }
+        
+        goToStep(previousStep);
+    }
 }
 
 

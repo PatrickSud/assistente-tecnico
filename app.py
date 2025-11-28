@@ -63,6 +63,18 @@ def get_current_version():
         logging.error(f"Erro ao ler versão atual: {e}")
         return '1.0.0'
 
+def _is_version_newer(remote_version, local_version):
+    """Compara versões semanticamente. Retorna True se remote_version > local_version"""
+    try:
+        # Converte strings de versão em tuplas de inteiros para comparação
+        remote_parts = tuple(map(int, remote_version.split('.')))
+        local_parts = tuple(map(int, local_version.split('.')))
+        return remote_parts > local_parts
+    except Exception as e:
+        logging.warning(f"Erro ao comparar versões: {e}")
+        # Fallback para comparação de string se houver erro
+        return remote_version != local_version
+
 def check_for_updates():
     """Verifica se há atualizações disponíveis no GitHub"""
     try:
@@ -82,7 +94,8 @@ def check_for_updates():
             data = json.loads(response.read().decode('utf-8'))
             latest_version = data.get('tag_name', '').replace('v', '')
             
-            if latest_version and latest_version != current_version:
+            # Comparação semântica de versão
+            if latest_version and _is_version_newer(latest_version, current_version):
                 app_state["update_available"] = True
                 app_state["latest_version"] = latest_version
                 
@@ -95,7 +108,7 @@ def check_for_updates():
                 logging.info(f"Atualização disponível: v{latest_version}")
             else:
                 app_state["update_available"] = False
-                logging.info("Aplicação está atualizada")
+                logging.info(f"Aplicação está atualizada (Local: {current_version}, Remota: {latest_version})")
                 
     except Exception as e:
         logging.warning(f"Não foi possível verificar atualizações: {e}")
