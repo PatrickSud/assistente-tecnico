@@ -9,6 +9,7 @@ import urllib.error
 import shutil
 import threading
 import json
+import re
 from flask import Flask, render_template, jsonify, request, send_from_directory
 
 # --- Configurações Globais ---
@@ -20,6 +21,8 @@ NOME_INSTALADOR_AGENTE = "InstalaAgente.exe"
 # CAMINHO_COMPLETO_INSTALADOR removido em favor de resolução dinâmica
 # CAMINHO_AGENTE_POS_INSTALACAO removido em favor de resolução dinâmica
 URL_BASE_DOWNLOAD = "http://download.dominiosistemas.com.br/hide/agente/Agente-Comunicacao"
+URL_DOMINIO_CONTABIL = "https://download.dominiosistemas.com.br/instalacao/contabil/"
+NOME_INSTALADOR_DOMINIO = "InstalaDominio.exe"
 
 # Configuração de Log
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -113,6 +116,41 @@ def check_for_updates():
     except Exception as e:
         logging.warning(f"Não foi possível verificar atualizações: {e}")
         app_state["update_available"] = False
+
+def get_latest_dominio_url():
+    """Faz scraping da página para encontrar a versão mais recente do Domínio Contábil"""
+    try:
+        req = urllib.request.Request(URL_DOMINIO_CONTABIL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Procura por links de diretórios que parecem versões (ex: 105a11/)
+            # O padrão parece ser algo como [0-9]+[a-z]+[0-9]+
+            # Mas vamos pegar todos os links que terminam com / e não são parent directory
+            
+            # Regex simples para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios irrelevantes (Parent Directory, etc) se houver
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                raise Exception("Nenhuma versão encontrada.")
+            
+            # Ordenar para pegar o mais recente. 
+            # Assumindo que a ordem alfabética/numérica resolve ou que a lista já vem ordenada.
+            # O servidor Apache geralmente permite ordenar por data, mas aqui estamos parseando o HTML padrão.
+            # Vamos confiar na ordenação alfabética por enquanto, ou tentar pegar a data se necessário.
+            # No exemplo: 105a02 ... 105a11. A ordem alfabética funciona.
+            latest_version_dir = sorted(valid_dirs)[-1]
+            
+            full_url = f"{URL_DOMINIO_CONTABIL}{latest_version_dir}/Instala.exe"
+            logging.info(f"URL Domínio Contábil detectada: {full_url}")
+            return full_url
+            
+    except Exception as e:
+        logging.error(f"Erro ao buscar URL do Domínio Contábil: {e}")
+        return None
 
 # --- Funções Auxiliares ---
 def is_admin():
@@ -239,6 +277,89 @@ def download_worker(version):
         app_state["status"] = "error"
         app_state["message"] = f"Erro inesperado: {str(e)}"
 
+def download_dominio_worker(version=None):
+    global app_state
+    
+    if version:
+        # Se versão for especificada, monta a URL diretamente
+        url = f"{URL_DOMINIO_CONTABIL}{version}/Instala.exe"
+        logging.info(f"Usando versão específica do Domínio Contábil: {version}")
+    else:
+        # Caso contrário, busca a mais recente
+        url = get_latest_dominio_url()
+    
+    if not url:
+        app_state["status"] = "error"
+        app_state["message"] = "Não foi possível encontrar a versão no servidor."
+        return
+
+    _, download_dir, _ = get_resolved_paths()
+    destination_path = os.path.join(download_dir, NOME_INSTALADOR_DOMINIO)
+    
+    logging.info(f"Iniciando download Domínio Contábil de {url} para {destination_path}")
+    
+    app_state["status"] = "downloading"
+    app_state["progress"] = 0
+    app_state["message"] = f"Iniciando download do Domínio Contábil ({version if version else 'Mais Recente'})..."
+    
+    # Remover arquivo antigo se existir
+    if os.path.exists(destination_path):
+        try:
+            os.remove(destination_path)
+        except PermissionError:
+            logging.warning("Permissão negada ao remover instalador Domínio. Tentando finalizar processo InstalaDominio.exe...")
+            terminate_process(NOME_INSTALADOR_DOMINIO)
+            time.sleep(1) # Esperar o processo morrer
+            try:
+                os.remove(destination_path)
+            except Exception as e_retry:
+                app_state["status"] = "error"
+                app_state["message"] = f"Erro ao substituir instalador existente. Feche o instalador manualmente e tente novamente. ({e_retry})"
+                return
+        except Exception as e:
+            logging.warning(f"Erro ao remover instalador antigo: {e}")
+
+    try:
+        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        
+        with urllib.request.urlopen(req, timeout=600) as response, open(destination_path, 'wb') as f:
+            meta = response.info()
+            total_length_str = meta.get('Content-Length')
+            
+            if total_length_str:
+                total_length = int(total_length_str)
+                app_state["total_mb"] = total_length / (1024 * 1024)
+                dl = 0
+                block_size = 8192
+                
+                while True:
+                    chunk = response.read(block_size)
+                    if not chunk:
+                        break
+                    dl += len(chunk)
+                    f.write(chunk)
+                    
+                    done_ratio = dl / total_length
+                    app_state["progress"] = int(done_ratio * 100)
+                    app_state["downloaded_mb"] = dl / (1024 * 1024)
+                    app_state["message"] = f"Baixando Domínio Contábil... {app_state['progress']}%"
+            else:
+                app_state["message"] = "Baixando (tamanho desconhecido)..."
+                shutil.copyfileobj(response, f)
+                
+        app_state["status"] = "download_complete"
+        app_state["message"] = "Download do Domínio Contábil concluído!"
+        app_state["progress"] = 100
+        
+        # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
+        # (Isso é um hack rápido, idealmente o estado teria 'installer_type')
+        app_state["installer_path"] = destination_path
+        
+    except Exception as e:
+        app_state["status"] = "error"
+        app_state["message"] = f"Erro no download: {str(e)}"
+
 # --- Rotas ---
 
 @app.route('/')
@@ -261,6 +382,9 @@ def init_process():
     terminate_process(NOME_PROCESSO_AGENTE)
     terminate_process(NOME_PROCESSO_SERVICO_DOMINIO)
     
+    # Limpar caminho de instalador customizado (ex: Domínio Contábil)
+    app_state.pop("installer_path", None)
+    
     return jsonify({"success": True, "message": "Processos finalizados. Pronto para download."})
 
 @app.route('/api/download', methods=['POST'])
@@ -270,15 +394,35 @@ def start_download():
     if not version:
         return jsonify({"success": False, "message": "Versão não informada."}), 400
     
+    # Limpar caminho de instalador customizado
+    app_state.pop("installer_path", None)
+    
     # Iniciar download em thread separada
     thread = threading.Thread(target=download_worker, args=(version,))
     thread.start()
     
     return jsonify({"success": True, "message": "Download iniciado."})
 
+@app.route('/api/download_dominio', methods=['POST'])
+def start_download_dominio():
+    data = request.json or {}
+    version = data.get('version')
+    
+    # Iniciar download em thread separada
+    thread = threading.Thread(target=download_dominio_worker, args=(version,))
+    thread.start()
+    
+    return jsonify({"success": True, "message": "Download do Domínio iniciado."})
+
 @app.route('/api/install', methods=['POST'])
 def start_install():
-    _, _, installer_path = get_resolved_paths()
+    # Verifica se temos um caminho customizado definido pelo download do domínio
+    if "installer_path" in app_state and os.path.exists(app_state["installer_path"]):
+        installer_path = app_state["installer_path"]
+        # Limpa para não interferir em futuras execuções do agente
+        # app_state.pop("installer_path", None) # Melhor não limpar agora para permitir retry
+    else:
+        _, _, installer_path = get_resolved_paths()
     
     if not os.path.exists(installer_path):
         return jsonify({"success": False, "message": "Instalador não encontrado."}), 404

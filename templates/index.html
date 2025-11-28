@@ -87,13 +87,47 @@
               <i class="fa-solid fa-power-off"></i>
             </div>
             <h2>Preparação</h2>
-            <p>
+            <p id="prep-description">
               Vamos preparar o ambiente para a atualização. Isso <b>finalizará</b>
               os processos do Agente de Comunicação.
             </p>
-            <button class="btn-primary" onclick="startProcess()">
+
+            <!-- Opções de Operação (Apenas para Domínio Contábil) -->
+            <div id="operation-type-container" style="display: none; margin-bottom: 20px; text-align: left;">
+              <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main);">Selecione a operação:</h3>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="operationType" value="update" checked onchange="toggleOperationMode()">
+                  <span class="radio-custom"></span>
+                  Atualização
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="operationType" value="install" onchange="toggleOperationMode()">
+                  <span class="radio-custom"></span>
+                  Instalação
+                </label>
+              </div>
+            </div>
+
+            <button class="btn-primary" id="btn-start-process" onclick="startProcess()">
               Iniciar Processo <i class="fa-solid fa-arrow-right"></i>
             </button>
+            
+            <div id="dominio-install-area" style="display: none;">
+                <button class="btn-primary" id="btn-download-dominio" onclick="startDominioDownload()">
+                  Baixar mais recente <i class="fa-solid fa-download"></i>
+                </button>
+                
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão diferente:</p>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="dominioVersionInput" placeholder="Ex: 105a10" autocomplete="off">
+                    </div>
+                    <button class="btn-secondary" onclick="startDominioCustomDownload()" style="width: 100%;">
+                        Baixar Versão Específica
+                    </button>
+                </div>
+            </div>
           </div>
         </div>
 

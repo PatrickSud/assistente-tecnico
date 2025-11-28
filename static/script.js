@@ -64,10 +64,85 @@ function selectApp(appType) {
                 break;
         }
     }
+
+    // Show/Hide Operation Type for Domínio Contábil
+    const opContainer = document.getElementById('operation-type-container');
+    if (appType === 'dominio') {
+        opContainer.style.display = 'block';
+        // Reset to Update mode
+        document.querySelector('input[name="operationType"][value="update"]').checked = true;
+        toggleOperationMode();
+    } else {
+        opContainer.style.display = 'none';
+        // Ensure default buttons are visible for other apps
+        document.getElementById('btn-start-process').style.display = 'inline-flex';
+        document.getElementById('dominio-install-area').style.display = 'none';
+    }
     
     // Navigate to preparation screen
     navigationHistory.push('step-welcome');
     goToStep('step-welcome');
+}
+
+function toggleOperationMode() {
+    const operation = document.querySelector('input[name="operationType"]:checked').value;
+    const btnStart = document.getElementById('btn-start-process');
+    const dominioArea = document.getElementById('dominio-install-area');
+
+    if (operation === 'update') {
+        btnStart.style.display = 'inline-flex';
+        dominioArea.style.display = 'none';
+    } else {
+        btnStart.style.display = 'none';
+        dominioArea.style.display = 'block';
+    }
+}
+
+async function startDominioDownload() {
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download do Domínio Contábil.");
+    }
+}
+
+async function startDominioCustomDownload() {
+    const versionInput = document.getElementById('dominioVersionInput');
+    const version = versionInput.value.trim();
+    
+    if (!version) {
+        alert("Por favor, informe a versão (ex: 105a10).");
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version: version })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download da versão específica.");
+    }
 }
 
 function goBack() {
