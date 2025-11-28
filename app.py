@@ -234,7 +234,7 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(_base_path(), 'static'), 'favicon.svg', mimetype='image/svg+xml')
+    return send_from_directory(os.path.join(_base_path(), 'static', 'Icone'), 'app_icon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/api/status')
 def get_status():
