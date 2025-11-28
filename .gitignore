@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# PyInstaller
+#  Usually these are specific to the machine, but the spec file is often kept.
+#  Since we are ignoring build/ and dist/, we are good.
+
+# Logs
+*.log
