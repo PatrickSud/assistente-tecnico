@@ -8,6 +8,7 @@ import urllib.request
 import urllib.error
 import shutil
 import threading
+import json
 from flask import Flask, render_template, jsonify, request, send_from_directory
 
 # --- Configurações Globais ---
@@ -41,8 +42,64 @@ app_state = {
     "progress": 0,
     "total_mb": 0,
     "downloaded_mb": 0,
-    "error_details": ""
+    "error_details": "",
+    "update_available": False,
+    "latest_version": "",
+    "current_version": "",
+    "download_url": ""
 }
+
+# --- Funções de Verificação de Atualização ---
+def get_current_version():
+    """Obtém a versão atual do arquivo version.json"""
+    try:
+        version_file = os.path.join(_base_path(), 'version.json')
+        if os.path.exists(version_file):
+            with open(version_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('version', '1.0.0')
+        return '1.0.0'
+    except Exception as e:
+        logging.error(f"Erro ao ler versão atual: {e}")
+        return '1.0.0'
+
+def check_for_updates():
+    """Verifica se há atualizações disponíveis no GitHub"""
+    try:
+        current_version = get_current_version()
+        app_state["current_version"] = current_version
+        
+        # Buscar a última release do GitHub
+        version_file = os.path.join(_base_path(), 'version.json')
+        with open(version_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            repo = config.get('github_repo', 'PatrickSud/assistente-tecnico')
+        
+        api_url = f"https://api.github.com/repos/{repo}/releases/latest"
+        req = urllib.request.Request(api_url, headers={'User-Agent': 'Mozilla/5.0'})
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            latest_version = data.get('tag_name', '').replace('v', '')
+            
+            if latest_version and latest_version != current_version:
+                app_state["update_available"] = True
+                app_state["latest_version"] = latest_version
+                
+                # Encontrar o link do executável
+                for asset in data.get('assets', []):
+                    if asset['name'].endswith('.exe'):
+                        app_state["download_url"] = asset['browser_download_url']
+                        break
+                
+                logging.info(f"Atualização disponível: v{latest_version}")
+            else:
+                app_state["update_available"] = False
+                logging.info("Aplicação está atualizada")
+                
+    except Exception as e:
+        logging.warning(f"Não foi possível verificar atualizações: {e}")
+        app_state["update_available"] = False
 
 # --- Funções Auxiliares ---
 def is_admin():
@@ -232,6 +289,9 @@ if __name__ == '__main__':
         except Exception as e:
             logging.error(f"Falha ao solicitar elevação: {e}")
         sys.exit() # Encerra a instância sem privilégios
+
+    # Verificar atualizações em background
+    threading.Thread(target=check_for_updates, daemon=True).start()
 
     # Abrir navegador automaticamente
     import webbrowser

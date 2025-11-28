@@ -1,6 +1,44 @@
 let currentVersion = "";
 let pollInterval = null;
 
+// Check for updates on page load
+window.addEventListener('DOMContentLoaded', async () => {
+    setTimeout(checkForUpdates, 2000); // Wait 2s for backend to check
+});
+
+async function checkForUpdates() {
+    try {
+        const response = await fetch('/api/status');
+        const state = await response.json();
+        
+        if (state.update_available) {
+            showUpdateNotification(state.current_version, state.latest_version, state.download_url);
+        }
+    } catch (e) {
+        console.warn("Could not check for updates:", e);
+    }
+}
+
+function showUpdateNotification(currentVer, latestVer, downloadUrl) {
+    const notification = document.createElement('div');
+    notification.className = 'update-notification';
+    notification.innerHTML = `
+        <div class="update-content">
+            <div class="update-icon">🔔</div>
+            <div class="update-text">
+                <strong>Nova versão disponível!</strong>
+                <p>Versão atual: v${currentVer} → Nova versão: v${latestVer}</p>
+            </div>
+            <div class="update-actions">
+                <a href="${downloadUrl}" target="_blank" class="btn-update">Baixar Atualização</a>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-dismiss">Dispensar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(notification);
+}
+
+
 function goToStep(stepId) {
     document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
     document.getElementById(stepId).classList.add('active');
