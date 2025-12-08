@@ -30,6 +30,7 @@ NOME_INSTALADOR_DOMINIO_CUSTOM = "instala.exe"
 URL_BUSCANFE = "https://download.dominiosistemas.com.br/instalacao/BuscaNF-eCliente/"
 PASTA_DOWNLOAD_BUSCANFE = r"C:\Contabil\Atualiza\BuscaNFe"
 NOME_INSTALADOR_BUSCANFE = "Instala_Cliente.exe"
+NOME_PROCESSO_BUSCANFE_CONFLITO = "Importação_NF-e_Portal_Federal_Cliente.exe"
 
 # Configuração de Log
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -580,6 +581,14 @@ def download_dominio_worker(version=None, download_type='install'):
 
 def download_buscanfe_worker(version=None):
     global app_state
+    
+    # Finalizar processo conflitante se estiver rodando
+    try:
+        logging.info(f"Verificando conflitos com processso {NOME_PROCESSO_BUSCANFE_CONFLITO}...")
+        terminate_process(NOME_PROCESSO_BUSCANFE_CONFLITO)
+        time.sleep(1)
+    except Exception as e:
+        logging.warning(f"Erro ao tentar finalizar processo conflitante Busca NF-e: {e}")
     
     if version:
         # Se versão for especificada, monta a URL diretamente

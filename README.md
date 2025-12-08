@@ -150,6 +150,7 @@ A aplicação requer privilégios de administrador para:
 Os seguintes processos são finalizados automaticamente quando necessário:
 - `Agente_comunicacao.exe` (Agente de Comunicação)
 - `ServicoDominioAtendimento.exe` (Domínio Sistemas)
+- `Importação_NF-e_Portal_Federal_Cliente.exe` (Busca NF-e)
 
 ## 🔄 Auto-atualização
 
@@ -182,6 +183,13 @@ gios de administrador
 
 ## 📊 Histórico de Versões
 
+### v1.5.0 (08/12/2025)
+- ✨ Novo sistema de atualização Domínio (Seletor de Versões e Ajustes)
+- 📂 Organização de downloads em subpastas (`Atualiza/Contabil/{Versao}`)
+- 🔧 Finalização automática de processos conflitantes no Busca NF-e
+- 🎨 UI refinada: Footer, confirmações one-click e correções visuais
+- 🐛 Correção de bug na transição de telas
+
 ### v1.4.0 (08/12/2025)
 - ✨ Adicionado suporte completo ao Busca NF-e
 - ✨ Renomeado "Domínio Contábil" para "Domínio Sistemas"
@@ -197,6 +205,6 @@ gios de administrador
 **Patrick Godoy**  
 ---
 
-**Versão Atual**: 1.4.0  
+**Versão Atual**: 1.5.0  
 **Última Atualização**: 08 de Dezembro de 2025  
 **Repositório**: [github.com/PatrickSud/assistente-tecnico](https://github.com/PatrickSud/assistente-tecnico)
