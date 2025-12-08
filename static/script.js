@@ -132,6 +132,7 @@ function toggleOperationMode() {
         if (selectedApp === 'dominio') {
             dominioUpdateArea.style.display = 'block';
             fetchDominioUpdateInfo();
+            fetchDominioUpdateVersions();
         } else {
             dominioUpdateArea.style.display = 'none';
             btnStart.style.display = 'inline-flex';
@@ -428,6 +429,175 @@ async function startDominioVersionDownload(version) {
         showError("Erro ao iniciar download da versão " + version);
     }
 }
+
+// ===== Seletor de Versões (Atualização Domínio) =====
+
+let dominioUpdateVersionsLoaded = false;
+
+async function fetchDominioUpdateVersions() {
+    if (dominioUpdateVersionsLoaded) return;
+
+    const grid = document.getElementById('dominio-update-versions-grid');
+    const moreContainer = document.getElementById('dominio-update-all-versions-container');
+    const moreBtn = document.getElementById('btn-dominio-update-more-versions');
+    
+    // Adicionar listener para toggle
+    moreBtn.onclick = toggleDominioUpdateMoreVersions;
+
+    try {
+        const response = await fetch('/api/dominio_versions?type=update');
+        const data = await response.json();
+
+        if (data.success && data.versions.length > 0) {
+            grid.innerHTML = '';
+            moreContainer.innerHTML = '';
+            
+            // Top 4
+            const top4 = data.versions.slice(0, 4);
+            top4.forEach(version => {
+                const btn = createUpdateVersionButton(version);
+                grid.appendChild(btn);
+            });
+
+            // Resto
+            if (data.versions.length > 4) {
+                const remaining = data.versions.slice(4);
+                remaining.forEach(version => {
+                    const btn = createUpdateVersionButton(version);
+                    moreContainer.appendChild(btn);
+                });
+                moreBtn.style.display = 'inline-block';
+            } else {
+                moreBtn.style.display = 'none';
+            }
+            
+            dominioUpdateVersionsLoaded = true;
+        } else {
+             grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Nenhuma versão de atualização encontrada.</div>';
+        }
+    } catch (e) {
+        console.error("Erro fetching update versions:", e);
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--error-color); font-size: 0.9rem;">Erro ao carregar versões.</div>';
+    }
+}
+
+function createUpdateVersionButton(version) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-secondary';
+    btn.textContent = version;
+    btn.style.width = '100%';
+    btn.onclick = () => startDominioUpdateVersionSelection(version);
+    return btn;
+}
+
+function toggleDominioUpdateMoreVersions() {
+    const container = document.getElementById('dominio-update-all-versions-container');
+    const btn = document.getElementById('btn-dominio-update-more-versions');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'grid';
+        btn.textContent = 'Menos...';
+    } else {
+        container.style.display = 'none';
+        btn.textContent = 'Mais...';
+    }
+}
+
+async function startDominioUpdateVersionSelection(version) {
+    // 1. Verificar se tem ajustes
+    try {
+        const response = await fetch(`/api/dominio_adjustments?version=${version}`);
+        const data = await response.json();
+        
+        if (data.success && data.adjustments && data.adjustments.length > 0) {
+            // TEM AJUSTES -> Mostrar tela de ajustes (Nível 2)
+            showAdjustmentsSelection(version, data.adjustments);
+        } else {
+            // SEM AJUSTES -> Confirmar e baixar direto
+            if (confirm(`Deseja baixar a atualização versão ${version}?`)) {
+                startDominioDownloadDirect(version, 'update');
+            }
+        }
+    } catch (e) {
+        console.error("Erro ao verificar ajustes:", e);
+        // Fallback: Tenta baixar direto
+        if (confirm(`Erro ao verificar ajustes. Tentar baixar versão ${version} assim mesmo?`)) {
+            startDominioDownloadDirect(version, 'update');
+        }
+    }
+}
+
+function showAdjustmentsSelection(version, adjustments) {
+    // Ocultar grids de versão
+    document.getElementById('dominio-update-versions-container').style.display = 'none';
+    
+    // Configurar container de ajustes
+    const container = document.getElementById('dominio-update-adjustments-container');
+    const versionSpan = document.getElementById('selected-update-version');
+    const list = document.getElementById('adjustments-list');
+    const btnBase = document.getElementById('btn-download-base-version');
+    
+    versionSpan.textContent = version;
+    list.innerHTML = ''; // Limpar anteriores
+    
+    // Configurar botão da base
+    btnBase.onclick = () => {
+        if(confirm(`Baixar versão base ${version}?`)) {
+             startDominioDownloadDirect(version, 'update');
+        }
+    };
+    
+    // Criar botões para cada ajuste
+    adjustments.forEach(adj => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-secondary';
+        btn.textContent = `Ajuste ${adj}`;
+        btn.style.width = '100%';
+        btn.onclick = () => {
+            if(confirm(`Baixar ajuste ${adj}?`)) {
+                // Ajuste baixa usando versão="105a11/atualizacoes/105a11a"
+                // Mas minha função backend download espera apenas a versão e monta o path...
+                // O backend download_dominio_worker usa: url_base + version + /Atualiza.exe
+                // Se eu passar version="105a11/atualizacoes/105a11a", a url fica:
+                // .../atualizacao/contabil/105a11/atualizacoes/105a11a/Atualiza.exe
+                // Isso funciona perfeitamente com a lógica atual!
+                startDominioDownloadDirect(`${version}/atualizacoes/${adj}`, 'update');
+            }
+        };
+        list.appendChild(btn);
+    });
+    
+    container.style.display = 'block';
+}
+
+function backToUpdateVersions() {
+    document.getElementById('dominio-update-adjustments-container').style.display = 'none';
+    document.getElementById('dominio-update-versions-container').style.display = 'block';
+}
+
+async function startDominioDownloadDirect(version, type) {
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                version: version,
+                download_type: type 
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download.");
+    }
+}
+
 
 
 async function fetchBuscaNFeVersion() {

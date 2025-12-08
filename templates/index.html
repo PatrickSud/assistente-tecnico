@@ -154,14 +154,49 @@
                 </button>
                 
                 <!-- Versão Específica -->
+                <!-- Seletor de Versões e Ajustes -->
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão/ajuste específico:</p>
-                    <div class="input-group" style="margin-bottom: 10px;">
-                        <input type="text" id="dominioUpdateVersionInput" placeholder="Ex: 105a11 ou 105a11b" autocomplete="off">
+                    <p id="dominio-update-select-label" style="margin-bottom: 10px; font-size: 0.9rem;">Ou selecione uma versão específica:</p>
+                    
+                    <!-- Nível 1: Grid de Versões -->
+                    <div id="dominio-update-versions-container">
+                        <div id="dominio-update-versions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                                Carregando versões...
+                            </div>
+                        </div>
+
+                        <div id="dominio-update-all-versions-container" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
+                            <!-- Versões adicionais -->
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <button id="btn-dominio-update-more-versions" onclick="toggleDominioUpdateMoreVersions()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem; display: none;">
+                                Mais...
+                            </button>
+                        </div>
                     </div>
-                    <button class="btn-secondary" onclick="startDominioCustomUpdate()" style="width: 100%;">
-                        Baixar essa versão
-                    </button>
+
+                    <!-- Nível 2: Seleção de Ajustes (inicialmente oculto) -->
+                    <div id="dominio-update-adjustments-container" style="display: none; background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="margin-bottom: 15px;">
+                            <strong style="display: block; margin-bottom: 5px;">Versão <span id="selected-update-version"></span> selecionada</strong>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">Escolha o arquivo para baixar:</span>
+                        </div>
+
+                        <button class="btn-primary" id="btn-download-base-version" style="width: 100%; margin-bottom: 10px;">
+                            Baixar Versão Base (Atualiza.exe)
+                        </button>
+
+                        <div id="adjustments-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                            <!-- Botões de ajuste serão inseridos aqui -->
+                        </div>
+                        
+                        <button class="btn-secondary" onclick="backToUpdateVersions()" style="width: 100%; opacity: 0.8;">
+                            <i class="fa-solid fa-arrow-left"></i> Voltar para versões
+                        </button>
+                    </div>
+
                 </div>
             </div>
 

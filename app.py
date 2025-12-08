@@ -255,11 +255,16 @@ def get_latest_adjustment_info(version):
         return None, None
 
 
-def get_dominio_versions_list():
-    """Busca lista de versões disponíveis para instalação do Domínio Sistemas"""
-    URL_INSTALL = "https://download.dominiosistemas.com.br/instalacao/contabil/"
+
+def get_dominio_versions_list(list_type='install'):
+    """Busca lista de versões disponíveis para instalação ou atualização do Domínio Sistemas"""
+    if list_type == 'update':
+        url_base = "https://download.dominiosistemas.com.br/atualizacao/contabil/"
+    else:
+        url_base = "https://download.dominiosistemas.com.br/instalacao/contabil/"
+        
     try:
-        req = urllib.request.Request(URL_INSTALL, headers={'User-Agent': 'Mozilla/5.0'})
+        req = urllib.request.Request(url_base, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=10) as response:
             html = response.read().decode('utf-8')
             
@@ -278,7 +283,36 @@ def get_dominio_versions_list():
             return sorted_versions
             
     except Exception as e:
-        logging.error(f"Erro ao buscar lista de versões de instalação: {e}")
+        logging.error(f"Erro ao buscar lista de versões de {list_type}: {e}")
+        return []
+
+def get_dominio_adjustments_list_all(version):
+    """busca lista de todos os ajustes disponíveis para uma versão"""
+    url_base = f"https://download.dominiosistemas.com.br/atualizacao/contabil/{version}/atualizacoes/"
+    try:
+        req = urllib.request.Request(url_base, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Regex para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios válidos
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                return []
+            
+            # Ordenar decrescente (mais recentes primeiro)
+            sorted_adjustments = sorted(valid_dirs, reverse=True)
+            return sorted_adjustments
+            
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            logging.info(f"Pasta de ajustes não existe para versão {version}")
+        return []
+    except Exception as e:
+        logging.error(f"Erro ao buscar lista de ajustes: {e}")
         return []
 
 
@@ -698,12 +732,23 @@ def get_dominio_update_info():
 
 @app.route('/api/dominio_versions')
 def get_dominio_versions():
-    """Retorna lista de versões disponíveis para instalação do Domínio Sistemas"""
-    versions = get_dominio_versions_list()
+    """Retorna lista de versões disponíveis"""
+    list_type = request.args.get('type', 'install') # 'install' ou 'update'
+    versions = get_dominio_versions_list(list_type)
     if versions:
         return jsonify({"success": True, "versions": versions})
     else:
         return jsonify({"success": False, "message": "Nenhuma versão encontrada."}), 404
+
+@app.route('/api/dominio_adjustments')
+def get_dominio_adjustments():
+    """Retorna lista de ajustes para uma versão"""
+    version = request.args.get('version')
+    if not version:
+        return jsonify({"success": False, "message": "Versão não informada."}), 400
+        
+    adjustments = get_dominio_adjustments_list_all(version)
+    return jsonify({"success": True, "adjustments": adjustments})
 
 
 
