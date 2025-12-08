@@ -23,6 +23,9 @@ NOME_INSTALADOR_AGENTE = "InstalaAgente.exe"
 URL_BASE_DOWNLOAD = "http://download.dominiosistemas.com.br/hide/agente/Agente-Comunicacao"
 URL_DOMINIO_CONTABIL = "https://download.dominiosistemas.com.br/instalacao/contabil/"
 NOME_INSTALADOR_DOMINIO = "InstalaDominio.exe"
+# Configurações específicas do Domínio Contábil
+PASTA_DOWNLOAD_DOMINIO = r"C:\Contabil\Atualiza"
+NOME_INSTALADOR_DOMINIO_CUSTOM = "instala.exe"
 
 # Configuração de Log
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -293,8 +296,9 @@ def download_dominio_worker(version=None):
         app_state["message"] = "Não foi possível encontrar a versão no servidor."
         return
 
-    _, download_dir, _ = get_resolved_paths()
-    destination_path = os.path.join(download_dir, NOME_INSTALADOR_DOMINIO)
+    # Usar caminho específico para Domínio Contábil
+    download_dir = PASTA_DOWNLOAD_DOMINIO
+    destination_path = os.path.join(download_dir, NOME_INSTALADOR_DOMINIO_CUSTOM)
     
     logging.info(f"Iniciando download Domínio Contábil de {url} para {destination_path}")
     
@@ -307,8 +311,8 @@ def download_dominio_worker(version=None):
         try:
             os.remove(destination_path)
         except PermissionError:
-            logging.warning("Permissão negada ao remover instalador Domínio. Tentando finalizar processo InstalaDominio.exe...")
-            terminate_process(NOME_INSTALADOR_DOMINIO)
+            logging.warning("Permissão negada ao remover instalador Domínio. Tentando finalizar processo instala.exe...")
+            terminate_process(NOME_INSTALADOR_DOMINIO_CUSTOM)
             time.sleep(1) # Esperar o processo morrer
             try:
                 os.remove(destination_path)
