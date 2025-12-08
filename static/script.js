@@ -250,7 +250,7 @@ async function startBuscaNFeCustomDownload() {
     const version = versionInput.value.trim();
     
     if (!version) {
-        alert("Por favor, informe a versão (ex: 105a10).");
+        alert("Por favor, informe a versão (ex: 6.10).");
         return;
     }
     
