@@ -484,7 +484,34 @@ def download_dominio_worker(version=None, download_type='install'):
         return
 
     # Usar caminho específico para Domínio Sistemas
-    download_dir = PASTA_DOWNLOAD_DOMINIO
+    # Ajustar diretório de download para usar subpasta da versão: Atualiza/Contabil/{VERSION}
+    version_folder_name = "Ultima"
+    
+    if version:
+        # Se versão foi informada (ex: "105a11" ou "105a11/atualizacoes/...")
+        # Pega a primeira parte que é a versão base
+        version_folder_name = version.split('/')[0].upper()
+    else:
+        # Se não tem versão explícita, tenta extrair da URL
+        try:
+            # URLs típicas:
+            # .../contabil/105a11/Instala.exe
+            # .../contabil/105a11/Atualiza.exe
+            parts = url.rstrip('/').split('/')
+            
+            # Se termina com .exe
+            if parts[-1].lower().endswith('.exe'):
+                candidate = parts[-2].upper()
+                if candidate == 'ATUALIZACOES':
+                    candidate = parts[-3].upper() # .../105a11/atualizacoes/xx.exe
+                version_folder_name = candidate
+            else:
+                version_folder_name = parts[-1].upper()
+        except:
+            pass
+
+    # PASTA_DOWNLOAD_DOMINIO = r"C:\Contabil\Atualiza"
+    download_dir = os.path.join(PASTA_DOWNLOAD_DOMINIO, "Contabil", version_folder_name)
     destination_path = os.path.join(download_dir, file_name)
     
     logging.info(f"Iniciando download Domínio Sistemas ({type_label}) de {url} para {destination_path}")
