@@ -26,6 +26,10 @@ NOME_INSTALADOR_DOMINIO = "InstalaDominio.exe"
 # Configurações específicas do Domínio Sistemas
 PASTA_DOWNLOAD_DOMINIO = r"C:\Contabil\Atualiza"
 NOME_INSTALADOR_DOMINIO_CUSTOM = "instala.exe"
+# Configurações específicas do Busca NF-e
+URL_BUSCANFE = "https://download.dominiosistemas.com.br/instalacao/BuscaNF-eCliente/"
+PASTA_DOWNLOAD_BUSCANFE = r"C:\Contabil\Atualiza\BuscaNFe"
+NOME_INSTALADOR_BUSCANFE = "Instala_Cliente.exe"
 
 # Configuração de Log
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -154,6 +158,34 @@ def get_latest_dominio_url():
     except Exception as e:
         logging.error(f"Erro ao buscar URL do Domínio Sistemas: {e}")
         return None, None
+
+def get_latest_buscanfe_url():
+    """Faz scraping da página para encontrar a versão mais recente do Busca NF-e"""
+    try:
+        req = urllib.request.Request(URL_BUSCANFE, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Regex simples para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios irrelevantes (Parent Directory, etc) se houver
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                raise Exception("Nenhuma versão encontrada.")
+            
+            # Pegar a versão mais recente
+            latest_version_dir = sorted(valid_dirs)[-1]
+            
+            full_url = f"{URL_BUSCANFE}{latest_version_dir}/{NOME_INSTALADOR_BUSCANFE}"
+            logging.info(f"URL Busca NF-e detectada: {full_url}")
+            return full_url, latest_version_dir
+            
+    except Exception as e:
+        logging.error(f"Erro ao buscar URL do Busca NF-e: {e}")
+        return None, None
+
 
 # --- Funções Auxiliares ---
 def is_admin():
@@ -364,6 +396,90 @@ def download_dominio_worker(version=None):
         app_state["status"] = "error"
         app_state["message"] = f"Erro no download: {str(e)}"
 
+def download_buscanfe_worker(version=None):
+    global app_state
+    
+    if version:
+        # Se versão for especificada, monta a URL diretamente
+        url = f"{URL_BUSCANFE}{version}/{NOME_INSTALADOR_BUSCANFE}"
+        logging.info(f"Usando versão específica do Busca NF-e: {version}")
+    else:
+        # Caso contrário, busca a mais recente
+        url, _ = get_latest_buscanfe_url()
+    
+    if not url:
+        app_state["status"] = "error"
+        app_state["message"] = "Não foi possível encontrar a versão no servidor."
+        return
+
+    # Usar caminho específico para Busca NF-e
+    download_dir = PASTA_DOWNLOAD_BUSCANFE
+    destination_path = os.path.join(download_dir, NOME_INSTALADOR_BUSCANFE)
+    
+    logging.info(f"Iniciando download Busca NF-e de {url} para {destination_path}")
+    
+    app_state["status"] = "downloading"
+    app_state["progress"] = 0
+    app_state["message"] = f"Iniciando download do Busca NF-e ({version if version else 'Mais Recente'})..."
+    
+    # Remover arquivo antigo se existir
+    if os.path.exists(destination_path):
+        try:
+            os.remove(destination_path)
+        except PermissionError:
+            logging.warning(f"Permissão negada ao remover instalador Busca NF-e. Tentando finalizar processo {NOME_INSTALADOR_BUSCANFE}...")
+            terminate_process(NOME_INSTALADOR_BUSCANFE)
+            time.sleep(1) # Esperar o processo morrer
+            try:
+                os.remove(destination_path)
+            except Exception as e_retry:
+                app_state["status"] = "error"
+                app_state["message"] = f"Erro ao substituir instalador existente. Feche o instalador manualmente e tente novamente. ({e_retry})"
+                return
+        except Exception as e:
+            logging.warning(f"Erro ao remover instalador antigo: {e}")
+
+    try:
+        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        
+        with urllib.request.urlopen(req, timeout=600) as response, open(destination_path, 'wb') as f:
+            meta = response.info()
+            total_length_str = meta.get('Content-Length')
+            
+            if total_length_str:
+                total_length = int(total_length_str)
+                app_state["total_mb"] = total_length / (1024 * 1024)
+                dl = 0
+                block_size = 8192
+                
+                while True:
+                    chunk = response.read(block_size)
+                    if not chunk:
+                        break
+                    dl += len(chunk)
+                    f.write(chunk)
+                    
+                    done_ratio = dl / total_length
+                    app_state["progress"] = int(done_ratio * 100)
+                    app_state["downloaded_mb"] = dl / (1024 * 1024)
+                    app_state["message"] = f"Baixando Busca NF-e... {app_state['progress']}%"
+            else:
+                app_state["message"] = "Baixando (tamanho desconhecido)..."
+                shutil.copyfileobj(response, f)
+                
+        app_state["status"] = "download_complete"
+        app_state["message"] = "Download do Busca NF-e concluído!"
+        app_state["progress"] = 100
+        
+        # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
+        app_state["installer_path"] = destination_path
+        
+    except Exception as e:
+        app_state["status"] = "error"
+        app_state["message"] = f"Erro no download: {str(e)}"
+
+
 # --- Rotas ---
 
 @app.route('/')
@@ -424,6 +540,25 @@ def get_dominio_version():
     if version:
         return jsonify({"success": True, "version": version})
     return jsonify({"success": False, "message": "Não foi possível obter a versão."}), 404
+
+@app.route('/api/download_buscanfe', methods=['POST'])
+def start_download_buscanfe():
+    data = request.json or {}
+    version = data.get('version')
+    
+    # Iniciar download em thread separada
+    thread = threading.Thread(target=download_buscanfe_worker, args=(version,))
+    thread.start()
+    
+    return jsonify({"success": True, "message": "Download do Busca NF-e iniciado."})
+
+@app.route('/api/buscanfe_version')
+def get_buscanfe_version():
+    _, version = get_latest_buscanfe_url()
+    if version:
+        return jsonify({"success": True, "version": version})
+    return jsonify({"success": False, "message": "Não foi possível obter a versão."}), 404
+
 
 @app.route('/api/install', methods=['POST'])
 def start_install():

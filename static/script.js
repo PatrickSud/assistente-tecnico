@@ -65,11 +65,11 @@ function selectApp(appType) {
         }
     }
 
-    // Update title and description for Domínio Sistemas
+    // Update title and description for Domínio Sistemas e Busca NF-e
     const prepTitle = document.getElementById('prep-title');
     const prepDescription = document.getElementById('prep-description');
     
-    if (appType === 'dominio') {
+    if (appType === 'dominio' || appType === 'buscanfe') {
         if (prepTitle) prepTitle.textContent = 'O que você quer fazer?';
         if (prepDescription) prepDescription.style.display = 'none';
     } else {
@@ -80,21 +80,26 @@ function selectApp(appType) {
         }
     }
 
-    // Show/Hide Operation Type for Domínio Sistemas
+    // Show/Hide Operation Type for Domínio Sistemas e Busca NF-e
     const opContainer = document.getElementById('operation-type-container');
-    if (appType === 'dominio') {
+    if (appType === 'dominio' || appType === 'buscanfe') {
         opContainer.style.display = 'block';
         // Reset to Update mode
         document.querySelector('input[name="operationType"][value="update"]').checked = true;
         toggleOperationMode();
         
         // Fetch and display the latest version
-        fetchDominioVersion();
+        if (appType === 'dominio') {
+            fetchDominioVersion();
+        } else if (appType === 'buscanfe') {
+            fetchBuscaNFeVersion();
+        }
     } else {
         opContainer.style.display = 'none';
         // Ensure default buttons are visible for other apps
         document.getElementById('btn-start-process').style.display = 'inline-flex';
         document.getElementById('dominio-install-area').style.display = 'none';
+        document.getElementById('buscanfe-install-area').style.display = 'none';
     }
     
     // Navigate to preparation screen
@@ -106,13 +111,22 @@ function toggleOperationMode() {
     const operation = document.querySelector('input[name="operationType"]:checked').value;
     const btnStart = document.getElementById('btn-start-process');
     const dominioArea = document.getElementById('dominio-install-area');
+    const buscanfeArea = document.getElementById('buscanfe-install-area');
 
     if (operation === 'update') {
         btnStart.style.display = 'inline-flex';
         dominioArea.style.display = 'none';
+        buscanfeArea.style.display = 'none';
     } else {
         btnStart.style.display = 'none';
-        dominioArea.style.display = 'block';
+        // Show the appropriate install area based on selected app
+        if (selectedApp === 'dominio') {
+            dominioArea.style.display = 'block';
+            buscanfeArea.style.display = 'none';
+        } else if (selectedApp === 'buscanfe') {
+            dominioArea.style.display = 'none';
+            buscanfeArea.style.display = 'block';
+        }
     }
 }
 
@@ -182,6 +196,74 @@ async function startDominioCustomDownload() {
         showError("Erro ao iniciar download da versão específica.");
     }
 }
+
+async function fetchBuscaNFeVersion() {
+    const displaySpan = document.getElementById('buscanfe-version-display');
+    if (!displaySpan) return;
+    
+    // Clear previous value
+    displaySpan.textContent = '';
+    
+    try {
+        const response = await fetch('/api/buscanfe_version');
+        const data = await response.json();
+        
+        if (data.success && data.version) {
+            displaySpan.textContent = ` (${data.version})`;
+        }
+    } catch (e) {
+        console.warn("Erro ao buscar versão do Busca NF-e:", e);
+    }
+}
+
+async function startBuscaNFeDownload() {
+    try {
+        const response = await fetch('/api/download_buscanfe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download do Busca NF-e.");
+    }
+}
+
+async function startBuscaNFeCustomDownload() {
+    const versionInput = document.getElementById('buscanfeVersionInput');
+    const version = versionInput.value.trim();
+    
+    if (!version) {
+        alert("Por favor, informe a versão (ex: 105a10).");
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/download_buscanfe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version: version })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download da versão específica.");
+    }
+}
+
 
 function goBack() {
     // Remove current step from history
@@ -274,8 +356,8 @@ function startPollingStatus() {
                     const manualUi = document.getElementById('manual-install-ui');
                     if (manualUi) manualUi.style.display = 'none';
                     
-                    // Only show install-check-area for Agente, not Domínio
-                    if (selectedApp !== 'dominio') {
+                    // Only show install-check-area for Agente, show finish button for Dominio/BuscaNFe
+                    if (selectedApp === 'agente') {
                         document.getElementById('install-check-area').style.display = 'block';
                         document.getElementById('dominio-finish-area').style.display = 'none';
                     } else {
@@ -306,8 +388,8 @@ async function runInstaller() {
             const manualUi = document.getElementById('manual-install-ui');
             if (manualUi) manualUi.style.display = 'none';
 
-            // Only show the "Verify" button for Agente, not for Domínio
-            if (selectedApp !== 'dominio') {
+            // Show the appropriate button based on selected app
+            if (selectedApp === 'agente') {
                 document.getElementById('install-check-area').style.display = 'block';
                 document.getElementById('dominio-finish-area').style.display = 'none';
             } else {
@@ -332,7 +414,7 @@ async function runExistingInstaller() {
             const manualUi = document.getElementById('manual-install-ui');
             if (manualUi) manualUi.style.display = 'none';
             
-            if (selectedApp !== 'dominio') {
+            if (selectedApp === 'agente') {
                 document.getElementById('install-check-area').style.display = 'block';
                 document.getElementById('dominio-finish-area').style.display = 'none';
             } else {
