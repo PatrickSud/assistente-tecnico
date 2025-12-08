@@ -408,7 +408,7 @@ function toggleDominioMoreVersions() {
 }
 
 async function startDominioVersionDownload(version) {
-    if (!confirm(`Deseja baixar e instalar a versão ${version} do Domínio Sistemas?`)) return;
+    // if (!confirm(`Deseja baixar e instalar a versão ${version} do Domínio Sistemas?`)) return;
 
     try {
         const response = await fetch('/api/download_dominio', {
@@ -515,17 +515,13 @@ async function startDominioUpdateVersionSelection(version) {
             // TEM AJUSTES -> Mostrar tela de ajustes (Nível 2)
             showAdjustmentsSelection(version, data.adjustments);
         } else {
-            // SEM AJUSTES -> Confirmar e baixar direto
-            if (confirm(`Deseja baixar a atualização versão ${version}?`)) {
-                startDominioDownloadDirect(version, 'update');
-            }
+            // SEM AJUSTES -> Baixar direto
+            startDominioDownloadDirect(version, 'update');
         }
     } catch (e) {
         console.error("Erro ao verificar ajustes:", e);
         // Fallback: Tenta baixar direto
-        if (confirm(`Erro ao verificar ajustes. Tentar baixar versão ${version} assim mesmo?`)) {
-            startDominioDownloadDirect(version, 'update');
-        }
+        startDominioDownloadDirect(version, 'update');
     }
 }
 
@@ -543,10 +539,9 @@ function showAdjustmentsSelection(version, adjustments) {
     list.innerHTML = ''; // Limpar anteriores
     
     // Configurar botão da base
+    // Configurar botão da base
     btnBase.onclick = () => {
-        if(confirm(`Baixar versão base ${version}?`)) {
-             startDominioDownloadDirect(version, 'update');
-        }
+         startDominioDownloadDirect(version, 'update');
     };
     
     // Criar botões para cada ajuste
@@ -560,11 +555,9 @@ function showAdjustmentsSelection(version, adjustments) {
         btn.textContent = `${adj}`;
         btn.style.width = '100%';
         btn.onclick = () => {
-            if(confirm(`Baixar ajuste ${adj}?`)) {
-                // Passa o caminho relativo COMPLETO do arquivo .exe
-                // O backend agora detecta se termina com .exe e usa como caminho direto relativo
-                startDominioDownloadDirect(`${version}/atualizacoes/${adj}`, 'update');
-            }
+            // Passa o caminho relativo COMPLETO do arquivo .exe
+            // O backend agora detecta se termina com .exe e usa como caminho direto relativo
+            startDominioDownloadDirect(`${version}/atualizacoes/${adj}`, 'update');
         };
         list.appendChild(btn);
     });
