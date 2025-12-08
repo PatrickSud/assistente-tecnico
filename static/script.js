@@ -119,21 +119,33 @@ function selectApp(appType) {
 function toggleOperationMode() {
     const operation = document.querySelector('input[name="operationType"]:checked').value;
     const btnStart = document.getElementById('btn-start-process');
-    const dominioArea = document.getElementById('dominio-install-area');
+    const dominioInstallArea = document.getElementById('dominio-install-area');
+    const dominioUpdateArea = document.getElementById('dominio-update-area');
     const buscanfeArea = document.getElementById('buscanfe-install-area');
 
     if (operation === 'update') {
-        btnStart.style.display = 'inline-flex';
-        dominioArea.style.display = 'none';
+        btnStart.style.display = 'none';
+        dominioInstallArea.style.display = 'none';
         buscanfeArea.style.display = 'none';
+        
+        // Show update area and fetch update info for Dominio
+        if (selectedApp === 'dominio') {
+            dominioUpdateArea.style.display = 'block';
+            fetchDominioUpdateInfo();
+        } else {
+            dominioUpdateArea.style.display = 'none';
+            btnStart.style.display = 'inline-flex';
+        }
     } else {
         btnStart.style.display = 'none';
+        dominioUpdateArea.style.display = 'none';
+        
         // Show the appropriate install area based on selected app
         if (selectedApp === 'dominio') {
-            dominioArea.style.display = 'block';
+            dominioInstallArea.style.display = 'block';
             buscanfeArea.style.display = 'none';
         } else if (selectedApp === 'buscanfe') {
-            dominioArea.style.display = 'none';
+            dominioInstallArea.style.display = 'none';
             buscanfeArea.style.display = 'block';
         }
     }
@@ -205,6 +217,119 @@ async function startDominioCustomDownload() {
         showError("Erro ao iniciar download da versão específica.");
     }
 }
+
+// ===== Funções de Atualização do Domínio Sistemas =====
+
+async function fetchDominioUpdateInfo() {
+    try {
+        const response = await fetch('/api/dominio_update_info');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Preencher versão completa
+            const versionSpan = document.getElementById('dominio-update-version');
+            if (versionSpan) {
+                versionSpan.textContent = ` (${data.version})`;
+            }
+            
+            // Mostrar/ocultar botão de ajuste
+            const adjustmentBtn = document.getElementById('btn-update-adjustment');
+            const adjustmentSpan = document.getElementById('dominio-adjustment-version');
+            
+            if (data.has_adjustment && data.adjustment) {
+                adjustmentBtn.style.display = 'block';
+                if (adjustmentSpan) {
+                    adjustmentSpan.textContent = ` (${data.adjustment})`;
+                }
+            } else {
+                adjustmentBtn.style.display = 'none';
+            }
+        }
+    } catch (e) {
+        console.warn("Erro ao buscar informações de atualização:", e);
+    }
+}
+
+async function startDominioFullUpdate() {
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ download_type: 'update' })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download da atualização.");
+    }
+}
+
+async function startDominioAdjustmentUpdate() {
+    try {
+        // Buscar informação do ajuste
+        const infoResponse = await fetch('/api/dominio_update_info');
+        const infoData = await infoResponse.json();
+        
+        if (infoData.success && infoData.adjustment) {
+            const response = await fetch('/api/download_dominio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    version: infoData.adjustment,
+                    download_type: 'update'
+                })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                goToStep('step-download');
+                startPollingStatus();
+            } else {
+                showError(data.message);
+            }
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download do ajuste.");
+    }
+}
+
+async function startDominioCustomUpdate() {
+    const versionInput = document.getElementById('dominioUpdateVersionInput');
+    const version = versionInput.value.trim();
+    
+    if (!version) {
+        alert("Por favor, informe a versão ou ajuste (ex: 105a11 ou 105a11b).");
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                version: version,
+                download_type: 'update'
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download da versão/ajuste específico.");
+    }
+}
+
 
 async function fetchBuscaNFeVersion() {
     const displaySpan = document.getElementById('buscanfe-version-display');

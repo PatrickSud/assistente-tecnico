@@ -186,6 +186,74 @@ def get_latest_buscanfe_url():
         logging.error(f"Erro ao buscar URL do Busca NF-e: {e}")
         return None, None
 
+def get_latest_update_url():
+    """Busca a versão mais recente de atualização do Domínio Sistemas"""
+    URL_UPDATE = "https://download.dominiosistemas.com.br/atualizacao/contabil/"
+    try:
+        req = urllib.request.Request(URL_UPDATE, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Regex para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios válidos
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                raise Exception("Nenhuma versão de atualização encontrada.")
+            
+            # Pegar a versão mais recente
+            latest_version_dir = sorted(valid_dirs)[-1]
+            
+            full_url = f"{URL_UPDATE}{latest_version_dir}/Atualiza.exe"
+            logging.info(f"URL de Atualização Domínio Sistemas detectada: {full_url}")
+            return full_url, latest_version_dir
+            
+    except Exception as e:
+        logging.error(f"Erro ao buscar URL de atualização: {e}")
+        return None, None
+
+def get_latest_adjustment_info(version):
+    """
+    Verifica se existe pasta 'atualizacoes' para uma versão específica
+    e retorna o ajuste mais recente se existir
+    """
+    URL_UPDATE = "https://download.dominiosistemas.com.br/atualizacao/contabil/"
+    adjustments_url = f"{URL_UPDATE}{version}/atualizacoes/"
+    
+    try:
+        req = urllib.request.Request(adjustments_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Regex para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios válidos (ajustes geralmente seguem padrão XXXaXXa, XXXaXXb, etc)
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                logging.info(f"Nenhum ajuste encontrado para versão {version}")
+                return None, None
+            
+            # Pegar o ajuste mais recente
+            latest_adjustment = sorted(valid_dirs)[-1]
+            
+            adjustment_url = f"{adjustments_url}{latest_adjustment}/Atualiza.exe"
+            logging.info(f"Ajuste detectado: {latest_adjustment} - URL: {adjustment_url}")
+            return adjustment_url, latest_adjustment
+            
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            logging.info(f"Pasta de ajustes não existe para versão {version}")
+        else:
+            logging.error(f"Erro HTTP ao buscar ajustes: {e.code}")
+        return None, None
+    except Exception as e:
+        logging.error(f"Erro ao buscar ajustes: {e}")
+        return None, None
+
 
 # --- Funções Auxiliares ---
 def is_admin():
@@ -312,16 +380,29 @@ def download_worker(version):
         app_state["status"] = "error"
         app_state["message"] = f"Erro inesperado: {str(e)}"
 
-def download_dominio_worker(version=None):
+def download_dominio_worker(version=None, download_type='install'):
     global app_state
+    
+    # Definir URLs e nomes de arquivo baseado no tipo de download
+    if download_type == 'update':
+        url_base = "https://download.dominiosistemas.com.br/atualizacao/contabil/"
+        file_name = "Atualiza.exe"
+        type_label = "Atualização"
+    else:  # install
+        url_base = URL_DOMINIO_CONTABIL
+        file_name = "Instala.exe"
+        type_label = "Instalação"
     
     if version:
         # Se versão for especificada, monta a URL diretamente
-        url = f"{URL_DOMINIO_CONTABIL}{version}/Instala.exe"
-        logging.info(f"Usando versão específica do Domínio Sistemas: {version}")
+        url = f"{url_base}{version}/{file_name}"
+        logging.info(f"Usando versão específica do Domínio Sistemas ({type_label}): {version}")
     else:
         # Caso contrário, busca a mais recente
-        url, _ = get_latest_dominio_url()
+        if download_type == 'update':
+            url, _ = get_latest_update_url()
+        else:
+            url, _ = get_latest_dominio_url()
     
     if not url:
         app_state["status"] = "error"
@@ -527,9 +608,10 @@ def start_download():
 def start_download_dominio():
     data = request.json or {}
     version = data.get('version')
+    download_type = data.get('download_type', 'install')  # 'install' ou 'update'
     
     # Iniciar download em thread separada
-    thread = threading.Thread(target=download_dominio_worker, args=(version,))
+    thread = threading.Thread(target=download_dominio_worker, args=(version, download_type))
     thread.start()
     
     return jsonify({"success": True, "message": "Download do Domínio iniciado."})
@@ -558,6 +640,34 @@ def get_buscanfe_version():
     if version:
         return jsonify({"success": True, "version": version})
     return jsonify({"success": False, "message": "Não foi possível obter a versão."}), 404
+
+@app.route('/api/dominio_update_info')
+def get_dominio_update_info():
+    """Retorna informações sobre atualizações e ajustes disponíveis do Domínio Sistemas"""
+    try:
+        # Buscar versão mais recente de atualização
+        update_url, version = get_latest_update_url()
+        
+        if not version:
+            return jsonify({"success": False, "message": "Não foi possível obter informações de atualização."}), 404
+        
+        # Verificar se existe ajuste para essa versão
+        adjustment_url, adjustment = get_latest_adjustment_info(version)
+        
+        response_data = {
+            "success": True,
+            "version": version,
+            "version_url": update_url,
+            "has_adjustment": adjustment is not None,
+            "adjustment": adjustment,
+            "adjustment_url": adjustment_url
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logging.error(f"Erro ao obter informações de atualização: {e}")
+        return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
 
 
 @app.route('/api/install', methods=['POST'])

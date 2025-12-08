@@ -128,6 +128,33 @@
                 </div>
             </div>
 
+            <div id="dominio-update-area" style="display: none;">
+                <!-- Botão 1: Atualização Completa -->
+                <button class="btn-primary" id="btn-update-full" onclick="startDominioFullUpdate()">
+                  Baixar Atualização <span id="dominio-update-version"></span>
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                
+                <!-- Botão 2: Ajuste (condicional) -->
+                <button id="btn-update-adjustment" class="btn-primary" 
+                        onclick="startDominioAdjustmentUpdate()" 
+                        style="display: none; margin-top: 10px;">
+                  Baixar Ajuste <span id="dominio-adjustment-version"></span>
+                  <i class="fa-solid fa-download"></i>
+                </button>
+                
+                <!-- Versão Específica -->
+                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão/ajuste específico:</p>
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <input type="text" id="dominioUpdateVersionInput" placeholder="Ex: 105a11 ou 105a11b" autocomplete="off">
+                    </div>
+                    <button class="btn-secondary" onclick="startDominioCustomUpdate()" style="width: 100%;">
+                        Baixar essa versão
+                    </button>
+                </div>
+            </div>
+
             <div id="buscanfe-install-area" style="display: none;">
                 <button class="btn-primary" id="btn-download-buscanfe" onclick="startBuscaNFeDownload()">
                   Baixar mais recente <span id="buscanfe-version-display"></span> <i class="fa-solid fa-download"></i>
