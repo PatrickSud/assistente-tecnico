@@ -411,9 +411,9 @@ def download_dominio_worker(version=None, download_type='install'):
 
     # Usar caminho específico para Domínio Sistemas
     download_dir = PASTA_DOWNLOAD_DOMINIO
-    destination_path = os.path.join(download_dir, NOME_INSTALADOR_DOMINIO_CUSTOM)
+    destination_path = os.path.join(download_dir, file_name)
     
-    logging.info(f"Iniciando download Domínio Sistemas de {url} para {destination_path}")
+    logging.info(f"Iniciando download Domínio Sistemas ({type_label}) de {url} para {destination_path}")
     
     app_state["status"] = "downloading"
     app_state["progress"] = 0
@@ -424,8 +424,8 @@ def download_dominio_worker(version=None, download_type='install'):
         try:
             os.remove(destination_path)
         except PermissionError:
-            logging.warning("Permissão negada ao remover instalador Domínio. Tentando finalizar processo instala.exe...")
-            terminate_process(NOME_INSTALADOR_DOMINIO_CUSTOM)
+            logging.warning(f"Permissão negada ao remover {file_name}. Tentando finalizar processo...")
+            terminate_process(file_name)
             time.sleep(1) # Esperar o processo morrer
             try:
                 os.remove(destination_path)
