@@ -193,15 +193,8 @@ gios de administrador
 - � Melhorias na interface do Domínio Contábil
 - 🐛 Correções gerais
 
-## �📄 Licença
-
-Este projeto é de uso interno da Domínio Sistemas.
-
 ## 👤 Autor
-
 **Patrick Godoy**  
-Desenvolvedor - Domínio Sistemas
-
 ---
 
 **Versão Atual**: 1.4.0  
