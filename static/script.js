@@ -65,11 +65,15 @@ function selectApp(appType) {
         }
     }
 
-    // Update title and description for Domínio Sistemas e Busca NF-e
+    // Update title and description based on app type
     const prepTitle = document.getElementById('prep-title');
     const prepDescription = document.getElementById('prep-description');
     
-    if (appType === 'dominio' || appType === 'buscanfe') {
+    if (appType === 'buscanfe') {
+        // Busca NF-e goes directly to installation
+        if (prepTitle) prepTitle.textContent = 'Baixar Instalador';
+        if (prepDescription) prepDescription.style.display = 'none';
+    } else if (appType === 'dominio') {
         if (prepTitle) prepTitle.textContent = 'O que você quer fazer?';
         if (prepDescription) prepDescription.style.display = 'none';
     } else {
@@ -80,20 +84,25 @@ function selectApp(appType) {
         }
     }
 
-    // Show/Hide Operation Type for Domínio Sistemas e Busca NF-e
+    // Show/Hide Operation Type - only for Domínio Sistemas
     const opContainer = document.getElementById('operation-type-container');
-    if (appType === 'dominio' || appType === 'buscanfe') {
+    if (appType === 'dominio') {
         opContainer.style.display = 'block';
         // Reset to Update mode
         document.querySelector('input[name="operationType"][value="update"]').checked = true;
         toggleOperationMode();
         
         // Fetch and display the latest version
-        if (appType === 'dominio') {
-            fetchDominioVersion();
-        } else if (appType === 'buscanfe') {
-            fetchBuscaNFeVersion();
-        }
+        fetchDominioVersion();
+    } else if (appType === 'buscanfe') {
+        // Busca NF-e: hide options, show install area directly
+        opContainer.style.display = 'none';
+        document.getElementById('btn-start-process').style.display = 'none';
+        document.getElementById('dominio-install-area').style.display = 'none';
+        document.getElementById('buscanfe-install-area').style.display = 'block';
+        
+        // Fetch and display the latest version
+        fetchBuscaNFeVersion();
     } else {
         opContainer.style.display = 'none';
         // Ensure default buttons are visible for other apps
