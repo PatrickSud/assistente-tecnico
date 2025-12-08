@@ -277,6 +277,10 @@ function startPollingStatus() {
                     // Only show install-check-area for Agente, not Domínio
                     if (selectedApp !== 'dominio') {
                         document.getElementById('install-check-area').style.display = 'block';
+                        document.getElementById('dominio-finish-area').style.display = 'none';
+                    } else {
+                        document.getElementById('install-check-area').style.display = 'none';
+                        document.getElementById('dominio-finish-area').style.display = 'block';
                     }
                     
                     goToStep('step-install');
@@ -305,6 +309,10 @@ async function runInstaller() {
             // Only show the "Verify" button for Agente, not for Domínio
             if (selectedApp !== 'dominio') {
                 document.getElementById('install-check-area').style.display = 'block';
+                document.getElementById('dominio-finish-area').style.display = 'none';
+            } else {
+                document.getElementById('install-check-area').style.display = 'none';
+                document.getElementById('dominio-finish-area').style.display = 'block';
             }
         } else {
             showError(data.message);
@@ -324,7 +332,13 @@ async function runExistingInstaller() {
             const manualUi = document.getElementById('manual-install-ui');
             if (manualUi) manualUi.style.display = 'none';
             
-            document.getElementById('install-check-area').style.display = 'block';
+            if (selectedApp !== 'dominio') {
+                document.getElementById('install-check-area').style.display = 'block';
+                document.getElementById('dominio-finish-area').style.display = 'none';
+            } else {
+                document.getElementById('install-check-area').style.display = 'none';
+                document.getElementById('dominio-finish-area').style.display = 'block';
+            }
             
             goToStep('step-install');
         } else {
