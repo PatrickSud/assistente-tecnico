@@ -146,11 +146,11 @@ def get_latest_dominio_url():
             
             full_url = f"{URL_DOMINIO_CONTABIL}{latest_version_dir}/Instala.exe"
             logging.info(f"URL Domínio Contábil detectada: {full_url}")
-            return full_url
+            return full_url, latest_version_dir
             
     except Exception as e:
         logging.error(f"Erro ao buscar URL do Domínio Contábil: {e}")
-        return None
+        return None, None
 
 # --- Funções Auxiliares ---
 def is_admin():
@@ -286,7 +286,7 @@ def download_dominio_worker(version=None):
         logging.info(f"Usando versão específica do Domínio Contábil: {version}")
     else:
         # Caso contrário, busca a mais recente
-        url = get_latest_dominio_url()
+        url, _ = get_latest_dominio_url()
     
     if not url:
         app_state["status"] = "error"
@@ -413,6 +413,13 @@ def start_download_dominio():
     thread.start()
     
     return jsonify({"success": True, "message": "Download do Domínio iniciado."})
+
+@app.route('/api/dominio_version')
+def get_dominio_version():
+    _, version = get_latest_dominio_url()
+    if version:
+        return jsonify({"success": True, "version": version})
+    return jsonify({"success": False, "message": "Não foi possível obter a versão."}), 404
 
 @app.route('/api/install', methods=['POST'])
 def start_install():

@@ -86,7 +86,7 @@
             <div class="icon-container">
               <i class="fa-solid fa-power-off"></i>
             </div>
-            <h2>Preparação</h2>
+            <h2 id="prep-title">Preparação</h2>
             <p id="prep-description">
               Vamos preparar o ambiente para a atualização. Isso <b>finalizará</b>
               os processos do Agente de Comunicação.
@@ -94,7 +94,6 @@
 
             <!-- Opções de Operação (Apenas para Domínio Contábil) -->
             <div id="operation-type-container" style="display: none; margin-bottom: 20px; text-align: left;">
-              <h3 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main);">Selecione a operação:</h3>
               <div class="radio-group">
                 <label class="radio-label">
                   <input type="radio" name="operationType" value="update" checked onchange="toggleOperationMode()">
@@ -115,21 +114,22 @@
             
             <div id="dominio-install-area" style="display: none;">
                 <button class="btn-primary" id="btn-download-dominio" onclick="startDominioDownload()">
-                  Baixar mais recente <i class="fa-solid fa-download"></i>
+                  Baixar mais recente <span id="dominio-version-display"></span> <i class="fa-solid fa-download"></i>
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão diferente:</p>
+                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão específica:</p>
                     <div class="input-group" style="margin-bottom: 10px;">
                         <input type="text" id="dominioVersionInput" placeholder="Ex: 105a10" autocomplete="off">
                     </div>
                     <button class="btn-secondary" onclick="startDominioCustomDownload()" style="width: 100%;">
-                        Baixar Versão Específica
+                        Baixar essa versão
                     </button>
                 </div>
             </div>
           </div>
         </div>
+
 
 
         <!-- Step 2: Version Input -->

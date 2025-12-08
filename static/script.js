@@ -65,6 +65,21 @@ function selectApp(appType) {
         }
     }
 
+    // Update title and description for Domínio Contábil
+    const prepTitle = document.getElementById('prep-title');
+    const prepDescription = document.getElementById('prep-description');
+    
+    if (appType === 'dominio') {
+        if (prepTitle) prepTitle.textContent = 'O que você quer fazer?';
+        if (prepDescription) prepDescription.style.display = 'none';
+    } else {
+        if (prepTitle) prepTitle.textContent = 'Preparação';
+        if (prepDescription) {
+            prepDescription.style.display = 'block';
+            prepDescription.innerHTML = 'Vamos preparar o ambiente para a atualização. Isso <b>finalizará</b> os processos do Agente de Comunicação.';
+        }
+    }
+
     // Show/Hide Operation Type for Domínio Contábil
     const opContainer = document.getElementById('operation-type-container');
     if (appType === 'dominio') {
@@ -72,6 +87,9 @@ function selectApp(appType) {
         // Reset to Update mode
         document.querySelector('input[name="operationType"][value="update"]').checked = true;
         toggleOperationMode();
+        
+        // Fetch and display the latest version
+        fetchDominioVersion();
     } else {
         opContainer.style.display = 'none';
         // Ensure default buttons are visible for other apps
@@ -98,11 +116,31 @@ function toggleOperationMode() {
     }
 }
 
+async function fetchDominioVersion() {
+    const displaySpan = document.getElementById('dominio-version-display');
+    if (!displaySpan) return;
+    
+    // Clear previous value
+    displaySpan.textContent = '';
+    
+    try {
+        const response = await fetch('/api/dominio_version');
+        const data = await response.json();
+        
+        if (data.success && data.version) {
+            displaySpan.textContent = ` (${data.version})`;
+        }
+    } catch (e) {
+        console.warn("Erro ao buscar versão do Domínio:", e);
+    }
+}
+
 async function startDominioDownload() {
     try {
         const response = await fetch('/api/download_dominio', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
         });
         const data = await response.json();
         
@@ -235,7 +273,11 @@ function startPollingStatus() {
                     // Pre-configure UI to avoid flicker
                     const manualUi = document.getElementById('manual-install-ui');
                     if (manualUi) manualUi.style.display = 'none';
-                    document.getElementById('install-check-area').style.display = 'block';
+                    
+                    // Only show install-check-area for Agente, not Domínio
+                    if (selectedApp !== 'dominio') {
+                        document.getElementById('install-check-area').style.display = 'block';
+                    }
                     
                     goToStep('step-install');
                     await runInstaller();
@@ -260,8 +302,10 @@ async function runInstaller() {
             const manualUi = document.getElementById('manual-install-ui');
             if (manualUi) manualUi.style.display = 'none';
 
-            // Show the "Verify" button
-            document.getElementById('install-check-area').style.display = 'block';
+            // Only show the "Verify" button for Agente, not for Domínio
+            if (selectedApp !== 'dominio') {
+                document.getElementById('install-check-area').style.display = 'block';
+            }
         } else {
             showError(data.message);
         }
