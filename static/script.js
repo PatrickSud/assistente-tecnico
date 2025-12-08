@@ -551,16 +551,16 @@ function showAdjustmentsSelection(version, adjustments) {
     adjustments.forEach(adj => {
         const btn = document.createElement('button');
         btn.className = 'btn-secondary';
-        btn.textContent = `Ajuste ${adj}`;
+        
+        // adj agora é "C105A1101.exe"
+        // Vamos exibir apenas o nome do arquivo para manter simples,
+        // mas futuramente podemos tentar parsear a data se tivermos essa info.
+        btn.textContent = `${adj}`;
         btn.style.width = '100%';
         btn.onclick = () => {
             if(confirm(`Baixar ajuste ${adj}?`)) {
-                // Ajuste baixa usando versão="105a11/atualizacoes/105a11a"
-                // Mas minha função backend download espera apenas a versão e monta o path...
-                // O backend download_dominio_worker usa: url_base + version + /Atualiza.exe
-                // Se eu passar version="105a11/atualizacoes/105a11a", a url fica:
-                // .../atualizacao/contabil/105a11/atualizacoes/105a11a/Atualiza.exe
-                // Isso funciona perfeitamente com a lógica atual!
+                // Passa o caminho relativo COMPLETO do arquivo .exe
+                // O backend agora detecta se termina com .exe e usa como caminho direto relativo
                 startDominioDownloadDirect(`${version}/atualizacoes/${adj}`, 'update');
             }
         };

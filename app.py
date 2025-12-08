@@ -294,17 +294,15 @@ def get_dominio_adjustments_list_all(version):
         with urllib.request.urlopen(req, timeout=10) as response:
             html = response.read().decode('utf-8')
             
-            # Regex para pegar href="xxxx/"
-            dirs = re.findall(r'href="([^"/]+)/"', html)
+            # Regex para pegar arquivos .exe na lista href="xxxx"
+            # Exemplo: <a href="C105A1101.exe">C105A1101.exe</a>
+            files = re.findall(r'href="([^"]+\.exe)"', html)
             
-            # Filtrar diretórios válidos
-            valid_dirs = [d for d in dirs if d[0].isdigit()]
-            
-            if not valid_dirs:
+            if not files:
                 return []
             
-            # Ordenar decrescente (mais recentes primeiro)
-            sorted_adjustments = sorted(valid_dirs, reverse=True)
+            # Ordenar decrescente
+            sorted_adjustments = sorted(files, reverse=True)
             return sorted_adjustments
             
     except urllib.error.HTTPError as e:
@@ -447,16 +445,31 @@ def download_dominio_worker(version=None, download_type='install'):
     # Definir URLs e nomes de arquivo baseado no tipo de download
     if download_type == 'update':
         url_base = "https://download.dominiosistemas.com.br/atualizacao/contabil/"
-        file_name = "Atualiza.exe"
         type_label = "Atualização"
+        
+        # Verificar se version é um caminho direto para um arquivo .exe
+        # Ex: "105a11/atualizacoes/C105A1101.exe"
+        if version and version.lower().endswith('.exe'):
+            file_name = os.path.basename(version) # Usa o nome do arquivo real (ex: C105A1101.exe)
+            # A URL completa será url_base + version (que já é o caminho relativo)
+            # Logicar abaixo ajusta isso
+        else:
+            file_name = "Atualiza.exe"
+            
     else:  # install
         url_base = URL_DOMINIO_CONTABIL
         file_name = "Instala.exe"
         type_label = "Instalação"
     
     if version:
-        # Se versão for especificada, monta a URL diretamente
-        url = f"{url_base}{version}/{file_name}"
+        # Se versão for especificada
+        if download_type == 'update' and version.lower().endswith('.exe'):
+             # Caso de ajuste direto: url base + subcaminho do arquivo
+             url = f"{url_base}{version}"
+        else:
+             # Caso normal: url base + versão + nome padrão
+             url = f"{url_base}{version}/{file_name}"
+             
         logging.info(f"Usando versão específica do Domínio Sistemas ({type_label}): {version}")
     else:
         # Caso contrário, busca a mais recente
