@@ -99,6 +99,7 @@ function selectApp(appType) {
         opContainer.style.display = 'none';
         document.getElementById('btn-start-process').style.display = 'none';
         document.getElementById('dominio-install-area').style.display = 'none';
+        document.getElementById('dominio-update-area').style.display = 'none'; // Fix: Ensure update area is hidden
         document.getElementById('buscanfe-install-area').style.display = 'block';
         
         // Fetch and display the latest version
@@ -108,6 +109,7 @@ function selectApp(appType) {
         // Ensure default buttons are visible for other apps
         document.getElementById('btn-start-process').style.display = 'inline-flex';
         document.getElementById('dominio-install-area').style.display = 'none';
+        document.getElementById('dominio-update-area').style.display = 'none'; // Fix: Ensure update area is hidden
         document.getElementById('buscanfe-install-area').style.display = 'none';
     }
     
