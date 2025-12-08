@@ -57,7 +57,7 @@ function selectApp(appType) {
                 subtitle.textContent = 'Agente de Comunicação';
                 break;
             case 'dominio':
-                subtitle.textContent = 'Domínio Contábil';
+                subtitle.textContent = 'Domínio Sistemas';
                 break;
             case 'buscanfe':
                 subtitle.textContent = 'Busca NF-e';
@@ -65,7 +65,7 @@ function selectApp(appType) {
         }
     }
 
-    // Update title and description for Domínio Contábil
+    // Update title and description for Domínio Sistemas
     const prepTitle = document.getElementById('prep-title');
     const prepDescription = document.getElementById('prep-description');
     
@@ -80,7 +80,7 @@ function selectApp(appType) {
         }
     }
 
-    // Show/Hide Operation Type for Domínio Contábil
+    // Show/Hide Operation Type for Domínio Sistemas
     const opContainer = document.getElementById('operation-type-container');
     if (appType === 'dominio') {
         opContainer.style.display = 'block';
@@ -151,7 +151,7 @@ async function startDominioDownload() {
             showError(data.message);
         }
     } catch (e) {
-        showError("Erro ao iniciar download do Domínio Contábil.");
+        showError("Erro ao iniciar download do Domínio Sistemas.");
     }
 }
 

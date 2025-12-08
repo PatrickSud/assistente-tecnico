@@ -23,7 +23,7 @@ NOME_INSTALADOR_AGENTE = "InstalaAgente.exe"
 URL_BASE_DOWNLOAD = "http://download.dominiosistemas.com.br/hide/agente/Agente-Comunicacao"
 URL_DOMINIO_CONTABIL = "https://download.dominiosistemas.com.br/instalacao/contabil/"
 NOME_INSTALADOR_DOMINIO = "InstalaDominio.exe"
-# Configurações específicas do Domínio Contábil
+# Configurações específicas do Domínio Sistemas
 PASTA_DOWNLOAD_DOMINIO = r"C:\Contabil\Atualiza"
 NOME_INSTALADOR_DOMINIO_CUSTOM = "instala.exe"
 
@@ -121,7 +121,7 @@ def check_for_updates():
         app_state["update_available"] = False
 
 def get_latest_dominio_url():
-    """Faz scraping da página para encontrar a versão mais recente do Domínio Contábil"""
+    """Faz scraping da página para encontrar a versão mais recente do Domínio Sistemas"""
     try:
         req = urllib.request.Request(URL_DOMINIO_CONTABIL, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=10) as response:
@@ -148,11 +148,11 @@ def get_latest_dominio_url():
             latest_version_dir = sorted(valid_dirs)[-1]
             
             full_url = f"{URL_DOMINIO_CONTABIL}{latest_version_dir}/Instala.exe"
-            logging.info(f"URL Domínio Contábil detectada: {full_url}")
+            logging.info(f"URL Domínio Sistemas detectada: {full_url}")
             return full_url, latest_version_dir
             
     except Exception as e:
-        logging.error(f"Erro ao buscar URL do Domínio Contábil: {e}")
+        logging.error(f"Erro ao buscar URL do Domínio Sistemas: {e}")
         return None, None
 
 # --- Funções Auxiliares ---
@@ -286,7 +286,7 @@ def download_dominio_worker(version=None):
     if version:
         # Se versão for especificada, monta a URL diretamente
         url = f"{URL_DOMINIO_CONTABIL}{version}/Instala.exe"
-        logging.info(f"Usando versão específica do Domínio Contábil: {version}")
+        logging.info(f"Usando versão específica do Domínio Sistemas: {version}")
     else:
         # Caso contrário, busca a mais recente
         url, _ = get_latest_dominio_url()
@@ -296,15 +296,15 @@ def download_dominio_worker(version=None):
         app_state["message"] = "Não foi possível encontrar a versão no servidor."
         return
 
-    # Usar caminho específico para Domínio Contábil
+    # Usar caminho específico para Domínio Sistemas
     download_dir = PASTA_DOWNLOAD_DOMINIO
     destination_path = os.path.join(download_dir, NOME_INSTALADOR_DOMINIO_CUSTOM)
     
-    logging.info(f"Iniciando download Domínio Contábil de {url} para {destination_path}")
+    logging.info(f"Iniciando download Domínio Sistemas de {url} para {destination_path}")
     
     app_state["status"] = "downloading"
     app_state["progress"] = 0
-    app_state["message"] = f"Iniciando download do Domínio Contábil ({version if version else 'Mais Recente'})..."
+    app_state["message"] = f"Iniciando download do Domínio Sistemas ({version if version else 'Mais Recente'})..."
     
     # Remover arquivo antigo se existir
     if os.path.exists(destination_path):
@@ -347,13 +347,13 @@ def download_dominio_worker(version=None):
                     done_ratio = dl / total_length
                     app_state["progress"] = int(done_ratio * 100)
                     app_state["downloaded_mb"] = dl / (1024 * 1024)
-                    app_state["message"] = f"Baixando Domínio Contábil... {app_state['progress']}%"
+                    app_state["message"] = f"Baixando Domínio Sistemas... {app_state['progress']}%"
             else:
                 app_state["message"] = "Baixando (tamanho desconhecido)..."
                 shutil.copyfileobj(response, f)
                 
         app_state["status"] = "download_complete"
-        app_state["message"] = "Download do Domínio Contábil concluído!"
+        app_state["message"] = "Download do Domínio Sistemas concluído!"
         app_state["progress"] = 100
         
         # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
@@ -386,7 +386,7 @@ def init_process():
     terminate_process(NOME_PROCESSO_AGENTE)
     terminate_process(NOME_PROCESSO_SERVICO_DOMINIO)
     
-    # Limpar caminho de instalador customizado (ex: Domínio Contábil)
+    # Limpar caminho de instalador customizado (ex: Domínio Sistemas)
     app_state.pop("installer_path", None)
     
     return jsonify({"success": True, "message": "Processos finalizados. Pronto para download."})
