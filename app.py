@@ -255,6 +255,33 @@ def get_latest_adjustment_info(version):
         return None, None
 
 
+def get_dominio_versions_list():
+    """Busca lista de versões disponíveis para instalação do Domínio Sistemas"""
+    URL_INSTALL = "https://download.dominiosistemas.com.br/instalacao/contabil/"
+    try:
+        req = urllib.request.Request(URL_INSTALL, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            
+            # Regex para pegar href="xxxx/"
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            
+            # Filtrar diretórios válidos (numéricos ou alfanuméricos padrão versão)
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            
+            if not valid_dirs:
+                return []
+            
+            # Ordenar decrescente (mais recentes primeiro)
+            sorted_versions = sorted(valid_dirs, reverse=True)
+            
+            return sorted_versions
+            
+    except Exception as e:
+        logging.error(f"Erro ao buscar lista de versões de instalação: {e}")
+        return []
+
+
 # --- Funções Auxiliares ---
 def is_admin():
     try:
@@ -668,6 +695,16 @@ def get_dominio_update_info():
     except Exception as e:
         logging.error(f"Erro ao obter informações de atualização: {e}")
         return jsonify({"success": False, "message": f"Erro: {str(e)}"}), 500
+
+@app.route('/api/dominio_versions')
+def get_dominio_versions():
+    """Retorna lista de versões disponíveis para instalação do Domínio Sistemas"""
+    versions = get_dominio_versions_list()
+    if versions:
+        return jsonify({"success": True, "versions": versions})
+    else:
+        return jsonify({"success": False, "message": "Nenhuma versão encontrada."}), 404
+
 
 
 @app.route('/api/install', methods=['POST'])

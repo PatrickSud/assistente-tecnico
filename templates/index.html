@@ -118,13 +118,23 @@
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão específica:</p>
-                    <div class="input-group" style="margin-bottom: 10px;">
-                        <input type="text" id="dominioVersionInput" placeholder="Ex: 105a10" autocomplete="off">
+                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou selecione uma versão específica:</p>
+                    
+                    <div id="dominio-versions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                            Carregando versões...
+                        </div>
                     </div>
-                    <button class="btn-secondary" onclick="startDominioCustomDownload()" style="width: 100%;">
-                        Baixar essa versão
-                    </button>
+
+                    <div id="dominio-all-versions-container" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
+                        <!-- Versões adicionais serão carregadas aqui -->
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button id="btn-dominio-more-versions" onclick="toggleDominioMoreVersions()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem; display: none;">
+                            Mais...
+                        </button>
+                    </div>
                 </div>
             </div>
 

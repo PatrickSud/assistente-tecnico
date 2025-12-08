@@ -144,6 +144,7 @@ function toggleOperationMode() {
         if (selectedApp === 'dominio') {
             dominioInstallArea.style.display = 'block';
             buscanfeArea.style.display = 'none';
+            fetchDominioVersions();
         } else if (selectedApp === 'buscanfe') {
             dominioInstallArea.style.display = 'none';
             buscanfeArea.style.display = 'block';
@@ -327,6 +328,104 @@ async function startDominioCustomUpdate() {
         }
     } catch (e) {
         showError("Erro ao iniciar download da versão/ajuste específico.");
+    }
+}
+
+
+
+// ===== Seletor de Versões (Instalação Domínio) =====
+
+let dominioVersionsLoaded = false;
+
+async function fetchDominioVersions() {
+    if (dominioVersionsLoaded) return; // Evitar recarregar se já carregou
+
+    const grid = document.getElementById('dominio-versions-grid');
+    const moreContainer = document.getElementById('dominio-all-versions-container');
+    const moreBtn = document.getElementById('btn-dominio-more-versions');
+
+    try {
+        const response = await fetch('/api/dominio_versions');
+        const data = await response.json();
+
+        if (data.success && data.versions.length > 0) {
+            grid.innerHTML = ''; // Limpar loading
+            moreContainer.innerHTML = '';
+            
+            // Renderizar top 4
+            const top4 = data.versions.slice(0, 4);
+            top4.forEach(version => {
+                const btn = createVersionButton(version);
+                grid.appendChild(btn);
+            });
+
+            // Renderizar restantes
+            if (data.versions.length > 4) {
+                const remaining = data.versions.slice(4);
+                remaining.forEach(version => {
+                    const btn = createVersionButton(version);
+                    moreContainer.appendChild(btn);
+                });
+                moreBtn.style.display = 'inline-block';
+            } else {
+                moreBtn.style.display = 'none';
+            }
+            
+            dominioVersionsLoaded = true;
+        } else {
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Nenhuma versão encontrada.</div>';
+        }
+    } catch (e) {
+        console.error("Erro fetching versions:", e);
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--error-color); font-size: 0.9rem;">Erro ao carregar versões.</div>';
+    }
+}
+
+function createVersionButton(version) {
+    const btn = document.createElement('button');
+    btn.className = 'btn-secondary'; // Reutilizando estilo
+    btn.textContent = version;
+    btn.style.width = '100%';
+    // Adicionar um pouco de destaque no hover se possível, mas btn-secondary já deve ter
+    btn.onclick = () => startDominioVersionDownload(version);
+    return btn;
+}
+
+function toggleDominioMoreVersions() {
+    const container = document.getElementById('dominio-all-versions-container');
+    const btn = document.getElementById('btn-dominio-more-versions');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'grid';
+        btn.textContent = 'Menos...';
+    } else {
+        container.style.display = 'none';
+        btn.textContent = 'Mais...';
+    }
+}
+
+async function startDominioVersionDownload(version) {
+    if (!confirm(`Deseja baixar e instalar a versão ${version} do Domínio Sistemas?`)) return;
+
+    try {
+        const response = await fetch('/api/download_dominio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                version: version,
+                download_type: 'install' 
+            })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            goToStep('step-download');
+            startPollingStatus();
+        } else {
+            showError(data.message);
+        }
+    } catch (e) {
+        showError("Erro ao iniciar download da versão " + version);
     }
 }
 
