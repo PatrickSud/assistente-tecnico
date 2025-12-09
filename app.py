@@ -825,6 +825,13 @@ def get_buscanfe_version():
         return jsonify({"success": True, "version": version})
     return jsonify({"success": False, "message": "Não foi possível obter a versão."}), 404
 
+@app.route('/api/buscanfe_versions')
+def get_buscanfe_versions():
+    versions = get_buscanfe_versions_list()
+    if versions:
+        return jsonify({"success": True, "versions": versions})
+    return jsonify({"success": False, "message": "Nenhuma versão encontrada."}), 404
+
 @app.route('/api/dominio_update_info')
 def get_dominio_update_info():
     """Retorna informações sobre atualizações e ajustes disponíveis do Domínio Sistemas"""

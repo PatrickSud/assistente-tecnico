@@ -381,23 +381,28 @@
                 "
               >
                 <p style="margin-bottom: 10px; font-size: 0.9rem">
-                  Ou informe uma versão específica:
+                  Ou selecione uma versão específica:
                 </p>
-                <div class="input-group" style="margin-bottom: 10px">
-                  <input
-                    type="text"
-                    id="buscanfeVersionInput"
-                    placeholder="Ex: 6.10"
-                    autocomplete="off"
-                  />
-                </div>
-                <button
-                  class="btn-secondary"
-                  onclick="startBuscaNFeCustomDownload()"
-                  style="width: 100%"
+                <div
+                  id="buscanfe-versions-grid"
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    margin-bottom: 10px;
+                  "
                 >
-                  Baixar essa versão
-                </button>
+                  <div
+                    style="
+                      grid-column: 1 / -1;
+                      text-align: center;
+                      color: var(--text-muted);
+                      font-size: 0.9rem;
+                    "
+                  >
+                    Carregando versões...
+                  </div>
+                </div>
               </div>
             </div>
           </div>

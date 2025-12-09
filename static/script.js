@@ -130,6 +130,7 @@ async function selectApp(appType) {
 
     // Fetch and display the latest version
     fetchBuscaNFeVersion()
+    fetchBuscaNFeVersions()
   } else {
     // Generic fallback
     opContainer.style.display = 'none'
@@ -222,20 +223,30 @@ async function startDominioDownload() {
   }
 }
 
-async function startDominioCustomDownload() {
-  const versionInput = document.getElementById('dominioVersionInput')
-  const version = versionInput.value.trim()
+async function fetchBuscaNFeVersion() {
+  const displaySpan = document.getElementById('buscanfe-version-display')
+  if (!displaySpan) return
 
-  if (!version) {
-    alert('Por favor, informe a versão (ex: 105a10).')
-    return
-  }
+  displaySpan.textContent = ''
 
   try {
-    const response = await fetch('/api/download_dominio', {
+    const response = await fetch('/api/buscanfe_version')
+    const data = await response.json()
+
+    if (data.success && data.version) {
+      displaySpan.textContent = ` (${data.version})`
+    }
+  } catch (e) {
+    console.warn('Erro ao buscar versão do Busca NF-e:', e)
+  }
+}
+
+async function startBuscaNFeDownload() {
+  try {
+    const response = await fetch('/api/download_buscanfe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version: version })
+      body: JSON.stringify({})
     })
     const data = await response.json()
 
@@ -246,7 +257,70 @@ async function startDominioCustomDownload() {
       showError(data.message)
     }
   } catch (e) {
-    showError('Erro ao iniciar download da versão específica.')
+    showError('Erro ao iniciar download do Busca NF-e.')
+  }
+}
+
+let buscaNFeVersionsLoaded = false
+
+async function fetchBuscaNFeVersions() {
+  if (buscaNFeVersionsLoaded) return
+
+  const grid = document.getElementById('buscanfe-versions-grid')
+
+  try {
+    const response = await fetch('/api/buscanfe_versions')
+    const data = await response.json()
+
+    if (data.success && data.versions.length > 0) {
+      grid.innerHTML = ''
+
+      const top4 = data.versions.slice(0, 4)
+      top4.forEach(version => {
+        const btn = createBuscaNFeVersionButton(version)
+        grid.appendChild(btn)
+      })
+
+      buscaNFeVersionsLoaded = true
+    } else {
+      grid.innerHTML =
+        '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Nenhuma versão encontrada.</div>'
+    }
+  } catch (e) {
+    console.error('Erro fetching versions:', e)
+    grid.innerHTML =
+      '<div style="grid-column: 1 / -1; text-align: center; color: var(--error-color); font-size: 0.9rem;">Erro ao carregar versões.</div>'
+  }
+}
+
+function createBuscaNFeVersionButton(version) {
+  const btn = document.createElement('button')
+  btn.className = 'btn-secondary'
+  btn.textContent = version
+  btn.style.width = '100%'
+  btn.onclick = () => startBuscaNFeVersionDownload(version)
+  return btn
+}
+
+async function startBuscaNFeVersionDownload(version) {
+  try {
+    const response = await fetch('/api/download_buscanfe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        version: version
+      })
+    })
+    const data = await response.json()
+
+    if (data.success) {
+      goToStep('step-download')
+      startPollingStatus()
+    } else {
+      showError(data.message)
+    }
+  } catch (e) {
+    showError('Erro ao iniciar download da versão ' + version)
   }
 }
 
