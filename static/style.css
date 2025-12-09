@@ -423,6 +423,9 @@ button {
 .progress-details {
     font-size: 0.85rem;
     margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Instructions List */

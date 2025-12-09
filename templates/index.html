@@ -38,17 +38,20 @@
         <p class="subtitle" id="app-subtitle">Agente de Comunicação</p>
       </header>
 
-
       <main id="wizard">
         <!-- Step 0: Application Selection -->
         <div class="step active" id="step-selection">
           <div class="card">
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <h2>Selecione a Aplicação</h2>
             <p>Escolha qual aplicação você deseja atualizar:</p>
-            
+
             <div class="app-selection-grid">
               <button class="app-card" onclick="selectApp('agente')">
                 <div class="app-icon">
@@ -56,14 +59,14 @@
                 </div>
                 <h3>Agente de Comunicação</h3>
               </button>
-              
+
               <button class="app-card" onclick="selectApp('dominio')">
                 <div class="app-icon">
                   <i class="fa-solid fa-calculator"></i>
                 </div>
                 <h3>Domínio Sistemas</h3>
               </button>
-              
+
               <button class="app-card" onclick="selectApp('buscanfe')">
                 <div class="app-icon">
                   <i class="fa-solid fa-file-invoice"></i>
@@ -80,7 +83,11 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container">
@@ -88,137 +95,313 @@
             </div>
             <h2 id="prep-title">Preparação</h2>
             <p id="prep-description">
-              Vamos preparar o ambiente para a atualização. Isso <b>finalizará</b>
+              Vamos preparar o ambiente para a atualização. Isso
+              <b>finalizará</b>
               os processos do Agente de Comunicação.
             </p>
 
             <!-- Opções de Operação (Apenas para Domínio Sistemas) -->
-            <div id="operation-type-container" style="display: none; margin-bottom: 20px; text-align: left;">
+            <div
+              id="operation-type-container"
+              style="display: none; margin-bottom: 20px; text-align: left"
+            >
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="operationType" value="update" checked onchange="toggleOperationMode()">
+                  <input
+                    type="radio"
+                    name="operationType"
+                    value="update"
+                    checked
+                    onchange="toggleOperationMode()"
+                  />
                   <span class="radio-custom"></span>
                   Atualização
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="operationType" value="install" onchange="toggleOperationMode()">
+                  <input
+                    type="radio"
+                    name="operationType"
+                    value="install"
+                    onchange="toggleOperationMode()"
+                  />
                   <span class="radio-custom"></span>
                   Instalação
                 </label>
               </div>
             </div>
 
-            <button class="btn-primary" id="btn-start-process" onclick="startProcess()">
+            <button
+              class="btn-primary"
+              id="btn-start-process"
+              onclick="startProcess()"
+            >
               Iniciar Processo <i class="fa-solid fa-arrow-right"></i>
             </button>
-            
-            <div id="dominio-install-area" style="display: none;">
-                <button class="btn-primary" id="btn-download-dominio" onclick="startDominioDownload()">
-                  Baixar Instalador <span id="dominio-version-display"></span> <i class="fa-solid fa-download"></i>
-                </button>
-                
-                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou selecione uma versão específica:</p>
-                    
-                    <div id="dominio-versions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                        <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
-                            Carregando versões...
-                        </div>
-                    </div>
 
-                    <div id="dominio-all-versions-container" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
-                        <!-- Versões adicionais serão carregadas aqui -->
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <button id="btn-dominio-more-versions" onclick="toggleDominioMoreVersions()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem; display: none;">
-                            Mais...
-                        </button>
-                    </div>
+            <div id="dominio-install-area" style="display: none">
+              <button
+                class="btn-primary"
+                id="btn-download-dominio"
+                onclick="startDominioDownload()"
+              >
+                Baixar Instalador <span id="dominio-version-display"></span>
+                <i class="fa-solid fa-download"></i>
+              </button>
+
+              <div
+                style="
+                  margin-top: 20px;
+                  border-top: 1px solid var(--border-color);
+                  padding-top: 15px;
+                "
+              >
+                <p style="margin-bottom: 10px; font-size: 0.9rem">
+                  Ou selecione uma versão específica:
+                </p>
+
+                <div
+                  id="dominio-versions-grid"
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 10px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <div
+                    style="
+                      grid-column: 1 / -1;
+                      text-align: center;
+                      color: var(--text-muted);
+                      font-size: 0.9rem;
+                    "
+                  >
+                    Carregando versões...
+                  </div>
                 </div>
+
+                <div
+                  id="dominio-all-versions-container"
+                  style="
+                    display: none;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 8px;
+                    margin-bottom: 15px;
+                  "
+                >
+                  <!-- Versões adicionais serão carregadas aqui -->
+                </div>
+
+                <div style="text-align: center">
+                  <button
+                    id="btn-dominio-more-versions"
+                    onclick="toggleDominioMoreVersions()"
+                    style="
+                      background: none;
+                      border: none;
+                      color: var(--primary-color);
+                      cursor: pointer;
+                      text-decoration: underline;
+                      font-size: 0.9rem;
+                      display: none;
+                    "
+                  >
+                    Mais...
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div id="dominio-update-area" style="display: none;">
-                <!-- Botão 1: Atualização Completa -->
-                <button class="btn-primary" id="btn-update-full" onclick="startDominioFullUpdate()">
-                  Baixar Atualização <span id="dominio-update-version"></span>
-                  <i class="fa-solid fa-download"></i>
-                </button>
-                
-                <!-- Botão 2: Ajuste (condicional) -->
-                <button id="btn-update-adjustment" class="btn-primary" 
-                        onclick="startDominioAdjustmentUpdate()" 
-                        style="display: none; margin-top: 10px;">
-                  Baixar Ajuste <span id="dominio-adjustment-version"></span>
-                  <i class="fa-solid fa-download"></i>
-                </button>
-                
-                <!-- Versão Específica -->
-                <!-- Seletor de Versões e Ajustes -->
-                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p id="dominio-update-select-label" style="margin-bottom: 10px; font-size: 0.9rem;">Ou selecione uma versão específica:</p>
-                    
-                    <!-- Nível 1: Grid de Versões -->
-                    <div id="dominio-update-versions-container">
-                        <div id="dominio-update-versions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
-                                Carregando versões...
-                            </div>
-                        </div>
+            <div id="dominio-update-area" style="display: none">
+              <!-- Botão 1: Atualização Completa -->
+              <button
+                class="btn-primary"
+                id="btn-update-full"
+                onclick="startDominioFullUpdate()"
+              >
+                Baixar Atualização <span id="dominio-update-version"></span>
+                <i class="fa-solid fa-download"></i>
+              </button>
 
-                        <div id="dominio-update-all-versions-container" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px;">
-                            <!-- Versões adicionais -->
-                        </div>
-                        
-                        <div style="text-align: center;">
-                            <button id="btn-dominio-update-more-versions" onclick="toggleDominioUpdateMoreVersions()" style="background: none; border: none; color: var(--primary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem; display: none;">
-                                Mais...
-                            </button>
-                        </div>
+              <!-- Botão 2: Ajuste (condicional) -->
+              <button
+                id="btn-update-adjustment"
+                class="btn-primary"
+                onclick="startDominioAdjustmentUpdate()"
+                style="display: none; margin-top: 10px"
+              >
+                Baixar Ajuste <span id="dominio-adjustment-version"></span>
+                <i class="fa-solid fa-download"></i>
+              </button>
+
+              <!-- Versão Específica -->
+              <!-- Seletor de Versões e Ajustes -->
+              <div
+                style="
+                  margin-top: 20px;
+                  border-top: 1px solid var(--border-color);
+                  padding-top: 15px;
+                "
+              >
+                <p
+                  id="dominio-update-select-label"
+                  style="margin-bottom: 10px; font-size: 0.9rem"
+                >
+                  Ou selecione uma versão específica:
+                </p>
+
+                <!-- Nível 1: Grid de Versões -->
+                <div id="dominio-update-versions-container">
+                  <div
+                    id="dominio-update-versions-grid"
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 10px;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <div
+                      style="
+                        grid-column: 1 / -1;
+                        text-align: center;
+                        color: var(--text-muted);
+                        font-size: 0.9rem;
+                      "
+                    >
+                      Carregando versões...
                     </div>
+                  </div>
 
-                    <!-- Nível 2: Seleção de Ajustes (inicialmente oculto) -->
-                    <div id="dominio-update-adjustments-container" style="display: none; background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="margin-bottom: 15px;">
-                            <strong style="display: block; margin-bottom: 5px;">Versão <span id="selected-update-version"></span> selecionada</strong>
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">Escolha o arquivo para baixar:</span>
-                        </div>
+                  <div
+                    id="dominio-update-all-versions-container"
+                    style="
+                      display: none;
+                      grid-template-columns: repeat(3, 1fr);
+                      gap: 8px;
+                      margin-bottom: 15px;
+                    "
+                  ></div>
 
-                        <button class="btn-primary" id="btn-download-base-version" style="width: 100%; margin-bottom: 10px;">
-                            Baixar Versão Base (Atualiza.exe)
-                        </button>
-
-                        <div id="adjustments-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                            <!-- Botões de ajuste serão inseridos aqui -->
-                        </div>
-                        
-                        <button class="btn-secondary" onclick="backToUpdateVersions()" style="width: 100%; border: 1px solid rgba(128,128,128,0.3); background-color: rgba(0,0,0,0.05); font-weight: 500;">
-                            <i class="fa-solid fa-arrow-left"></i> Voltar para versões
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <div id="buscanfe-install-area" style="display: none;">
-                <button class="btn-primary" id="btn-download-buscanfe" onclick="startBuscaNFeDownload()">
-                  Baixar mais recente <span id="buscanfe-version-display"></span> <i class="fa-solid fa-download"></i>
-                </button>
-                
-                <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-                    <p style="margin-bottom: 10px; font-size: 0.9rem;">Ou informe uma versão específica:</p>
-                    <div class="input-group" style="margin-bottom: 10px;">
-                        <input type="text" id="buscanfeVersionInput" placeholder="Ex: 6.10" autocomplete="off">
-                    </div>
-                    <button class="btn-secondary" onclick="startBuscaNFeCustomDownload()" style="width: 100%;">
-                        Baixar essa versão
+                  <div style="text-align: center">
+                    <button
+                      id="btn-dominio-update-more-versions"
+                      onclick="toggleDominioUpdateMoreVersions()"
+                      style="
+                        background: none;
+                        border: none;
+                        color: var(--primary-color);
+                        cursor: pointer;
+                        text-decoration: underline;
+                        font-size: 0.9rem;
+                        display: none;
+                      "
+                    >
+                      Mais...
                     </button>
+                  </div>
                 </div>
+
+                <!-- Nível 2: Seleção de Ajustes (inicialmente oculto) -->
+                <div
+                  id="dominio-update-adjustments-container"
+                  style="
+                    display: none;
+                    background: var(--bg-secondary);
+                    padding: 15px;
+                    border-radius: 8px;
+                    border: 1px solid var(--border-color);
+                  "
+                >
+                  <div style="margin-bottom: 15px">
+                    <strong style="display: block; margin-bottom: 5px"
+                      >Versão
+                      <span id="selected-update-version"></span>
+                      selecionada</strong
+                    >
+                    <span style="font-size: 0.85rem; color: var(--text-muted)"
+                      >Escolha o arquivo para baixar:</span
+                    >
+                  </div>
+
+                  <button
+                    class="btn-primary"
+                    id="btn-download-base-version"
+                    style="width: 100%; margin-bottom: 10px"
+                  >
+                    Baixar Versão Base (Atualiza.exe)
+                  </button>
+
+                  <div
+                    id="adjustments-list"
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 8px;
+                      margin-bottom: 15px;
+                      max-height: 250px;
+                      overflow-y: auto;
+                      padding-right: 5px;
+                    "
+                  >
+                    <!-- Botões de ajuste serão inseridos aqui -->
+                  </div>
+
+                  <button
+                    class="btn-secondary"
+                    onclick="backToUpdateVersions()"
+                    style="
+                      width: 100%;
+                      border: 1px solid rgba(128, 128, 128, 0.3);
+                      background-color: rgba(0, 0, 0, 0.05);
+                      font-weight: 500;
+                    "
+                  >
+                    <i class="fa-solid fa-arrow-left"></i> Voltar para versões
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="buscanfe-install-area" style="display: none">
+              <button
+                class="btn-primary"
+                id="btn-download-buscanfe"
+                onclick="startBuscaNFeDownload()"
+              >
+                Baixar mais recente <span id="buscanfe-version-display"></span>
+                <i class="fa-solid fa-download"></i>
+              </button>
+
+              <div
+                style="
+                  margin-top: 20px;
+                  border-top: 1px solid var(--border-color);
+                  padding-top: 15px;
+                "
+              >
+                <p style="margin-bottom: 10px; font-size: 0.9rem">
+                  Ou informe uma versão específica:
+                </p>
+                <div class="input-group" style="margin-bottom: 10px">
+                  <input
+                    type="text"
+                    id="buscanfeVersionInput"
+                    placeholder="Ex: 6.10"
+                    autocomplete="off"
+                  />
+                </div>
+                <button
+                  class="btn-secondary"
+                  onclick="startBuscaNFeCustomDownload()"
+                  style="width: 100%"
+                >
+                  Baixar essa versão
+                </button>
+              </div>
             </div>
           </div>
         </div>
-
-
 
         <!-- Step 2: Version Input -->
         <div class="step" id="step-version">
@@ -226,19 +409,28 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container">
               <i class="fa-solid fa-code-branch"></i>
             </div>
             <h2>Versão do Agente</h2>
-            <p style="margin-bottom: 5px;">Informe a versão que deseja instalar:</p>
-            
+            <p style="margin-bottom: 5px">
+              Informe a versão que deseja instalar:
+            </p>
+
             <div class="tooltip-container">
               Como verificar a versão?
               <div class="tooltip-image">
-                <img src="{{ url_for('static', filename='Versão.jpg') }}" alt="Exemplo de onde encontrar a versão" />
+                <img
+                  src="{{ url_for('static', filename='Versão.jpg') }}"
+                  alt="Exemplo de onde encontrar a versão"
+                />
               </div>
             </div>
             <div class="input-group">
@@ -251,7 +443,11 @@
               <span class="input-highlight"></span>
             </div>
             <div class="actions">
-              <button class="btn-secondary" onclick="runExistingInstaller()" title="Executa o instalador disponível na pasta do Agente de Comunicação">
+              <button
+                class="btn-secondary"
+                onclick="runExistingInstaller()"
+                title="Executa o instalador disponível na pasta do Agente de Comunicação"
+              >
                 Executar
               </button>
               <button class="btn-primary" onclick="confirmVersion()">
@@ -267,7 +463,11 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container pulse">
@@ -279,12 +479,15 @@
             <div class="progress-container">
               <div class="progress-bar" id="progressBar"></div>
             </div>
-            <p class="progress-details">
-              <span id="dl-size">0.00</span> MB baixados
-              <span style="float: right; color: var(--text-muted); font-size: 0.8rem;">
-                  <i class="fa-solid fa-gauge-high"></i> <span id="dl-speed">0.0</span> MB/s
+            <div class="progress-details">
+              <span style="color: var(--text-muted)"
+                ><span id="dl-size">0.00</span> MB baixados</span
+              >
+              <span style="color: var(--text-muted); font-size: 0.8rem">
+                <i class="fa-solid fa-gauge-high"></i>
+                <span id="dl-speed">0.0</span> MB/s
               </span>
-            </p>
+            </div>
           </div>
         </div>
 
@@ -294,7 +497,11 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container">
@@ -309,11 +516,11 @@
             </div>
             <div class="taskbar-example">
               <p class="example-label">
-                <i class="fa-solid fa-arrow-down"></i> 
+                <i class="fa-solid fa-arrow-down"></i>
                 Exemplo: Procure o instalador na barra de tarefas
               </p>
-              <img 
-                src="{{ url_for('static', filename='taskbar-example.jpg') }}" 
+              <img
+                src="{{ url_for('static', filename='taskbar-example.jpg') }}"
                 alt="Exemplo da barra de tarefas do Windows"
                 class="taskbar-image"
               />
@@ -353,21 +560,28 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container success-icon">
               <i class="fa-solid fa-check-circle"></i>
             </div>
             <h2>Sucesso!</h2>
-            <p>O Agente de Comunicação foi <b>iniciado</b>, verifique se o mesmo foi atualizado corretamente.</p>
+            <p>
+              O Agente de Comunicação foi <b>iniciado</b>, verifique se o mesmo
+              foi atualizado corretamente.
+            </p>
             <div class="taskbar-example">
               <p class="example-label">
-                <i class="fa-solid fa-arrow-down"></i> 
+                <i class="fa-solid fa-arrow-down"></i>
                 Exemplo: Procure o Agente aqui
               </p>
-              <img 
-                src="{{ url_for('static', filename='agent-taskbar-example.jpg') }}" 
+              <img
+                src="{{ url_for('static', filename='agent-taskbar-example.jpg') }}"
                 alt="Exemplo do Agente na barra de tarefas do Windows"
                 class="taskbar-image"
               />
@@ -389,7 +603,11 @@
             <button class="btn-back" onclick="goBack()" title="Voltar">
               <i class="fa-solid fa-arrow-left"></i>
             </button>
-            <button class="btn-exit-top" onclick="exitApp()" title="Finalizar Assistente">
+            <button
+              class="btn-exit-top"
+              onclick="exitApp()"
+              title="Finalizar Assistente"
+            >
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="icon-container error-icon">

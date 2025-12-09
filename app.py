@@ -316,6 +316,22 @@ def get_dominio_adjustments_list_all(version):
         return []
 
 
+def get_buscanfe_versions_list():
+    """Busca lista de versões disponíveis para o Busca NF-e"""
+    try:
+        req = urllib.request.Request(URL_BUSCANFE, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            html = response.read().decode('utf-8')
+            dirs = re.findall(r'href="([^"/]+)/"', html)
+            valid_dirs = [d for d in dirs if d[0].isdigit()]
+            if not valid_dirs:
+                return []
+            return sorted(valid_dirs, reverse=True)
+    except Exception as e:
+        logging.error(f"Erro ao buscar lista de versões do Busca NF-e: {e}")
+        return []
+
+
 # --- Funções Auxiliares ---
 def is_admin():
     try:
@@ -707,6 +723,7 @@ def download_buscanfe_worker(version=None):
         app_state["message"] = "Download do Busca NF-e concluído!"
         app_state["progress"] = 100
         app_state["speed_mbps"] = 0
+        app_state["installer_path"] = destination_path
         
         # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
         app_state["installer_path"] = destination_path
@@ -750,7 +767,9 @@ def start_download():
     if not version:
         return jsonify({"success": False, "message": "Versão não informada."}), 400
     
-    # Limpar caminho de instalador customizado
+    # Limpar estado para novo download
+    app_state["status"] = "idle"
+    app_state["progress"] = 0
     app_state.pop("installer_path", None)
     
     # Iniciar download em thread separada
@@ -764,6 +783,11 @@ def start_download_dominio():
     data = request.json or {}
     version = data.get('version')
     download_type = data.get('download_type', 'install')  # 'install' ou 'update'
+
+    # Limpar estado para novo download
+    app_state["status"] = "idle"
+    app_state["progress"] = 0
+    app_state.pop("installer_path", None)
     
     # Iniciar download em thread separada
     thread = threading.Thread(target=download_dominio_worker, args=(version, download_type))
@@ -782,6 +806,11 @@ def get_dominio_version():
 def start_download_buscanfe():
     data = request.json or {}
     version = data.get('version')
+
+    # Limpar estado para novo download
+    app_state["status"] = "idle"
+    app_state["progress"] = 0
+    app_state.pop("installer_path", None)
     
     # Iniciar download em thread separada
     thread = threading.Thread(target=download_buscanfe_worker, args=(version,))
