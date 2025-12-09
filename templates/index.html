@@ -114,7 +114,7 @@
             
             <div id="dominio-install-area" style="display: none;">
                 <button class="btn-primary" id="btn-download-dominio" onclick="startDominioDownload()">
-                  Baixar mais recente <span id="dominio-version-display"></span> <i class="fa-solid fa-download"></i>
+                  Baixar Instalador <span id="dominio-version-display"></span> <i class="fa-solid fa-download"></i>
                 </button>
                 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
@@ -233,7 +233,14 @@
               <i class="fa-solid fa-code-branch"></i>
             </div>
             <h2>Versão do Agente</h2>
-            <p>Informe a versão que deseja instalar (Ex: <b>15.71</b>).</p>
+            <p style="margin-bottom: 5px;">Informe a versão que deseja instalar:</p>
+            
+            <div class="tooltip-container">
+              Como verificar a versão?
+              <div class="tooltip-image">
+                <img src="{{ url_for('static', filename='Versão.jpg') }}" alt="Exemplo de onde encontrar a versão" />
+              </div>
+            </div>
             <div class="input-group">
               <input
                 type="text"
@@ -244,7 +251,7 @@
               <span class="input-highlight"></span>
             </div>
             <div class="actions">
-              <button class="btn-secondary" onclick="runExistingInstaller()">
+              <button class="btn-secondary" onclick="runExistingInstaller()" title="Executa o instalador disponível na pasta do Agente de Comunicação">
                 Executar
               </button>
               <button class="btn-primary" onclick="confirmVersion()">
@@ -274,6 +281,9 @@
             </div>
             <p class="progress-details">
               <span id="dl-size">0.00</span> MB baixados
+              <span style="float: right; color: var(--text-muted); font-size: 0.8rem;">
+                  <i class="fa-solid fa-gauge-high"></i> <span id="dl-speed">0.0</span> MB/s
+              </span>
             </p>
           </div>
         </div>

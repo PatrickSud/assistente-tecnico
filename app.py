@@ -53,6 +53,7 @@ app_state = {
     "progress": 0,
     "total_mb": 0,
     "downloaded_mb": 0,
+    "speed_mbps": 0,
     "error_details": "",
     "update_available": False,
     "latest_version": "",
@@ -371,7 +372,6 @@ def terminate_process(process_name):
 def download_worker(version):
     global app_state
     url = f"{URL_BASE_DOWNLOAD}/{version}/{NOME_INSTALADOR_AGENTE}"
-    url = f"{URL_BASE_DOWNLOAD}/{version}/{NOME_INSTALADOR_AGENTE}"
     
     _, _, destination_path = get_resolved_paths()
     logging.info(f"Definindo caminho de download para: {destination_path}")
@@ -379,6 +379,7 @@ def download_worker(version):
     app_state["status"] = "downloading"
     app_state["progress"] = 0
     app_state["message"] = "Iniciando download..."
+    app_state["speed_mbps"] = 0
     
     # Tentar remover arquivo existente. Se falhar por permissão, matar o processo do instalador.
     if os.path.exists(destination_path):
@@ -411,12 +412,25 @@ def download_worker(version):
                 dl = 0
                 block_size = 8192
                 
+                start_time = time.time()
+                last_time = start_time
+                last_dl = 0
+                
                 while True:
                     chunk = response.read(block_size)
                     if not chunk:
                         break
                     dl += len(chunk)
                     f.write(chunk)
+                    
+                    current_time = time.time()
+                    elapsed = current_time - last_time
+                    
+                    if elapsed >= 1.0: # Update speed every second
+                        speed = (dl - last_dl) / (1024 * 1024) / elapsed # MB/s
+                        app_state["speed_mbps"] = speed
+                        last_time = current_time
+                        last_dl = dl
                     
                     done_ratio = dl / total_length
                     app_state["progress"] = int(done_ratio * 100)
@@ -429,6 +443,7 @@ def download_worker(version):
         app_state["status"] = "download_complete"
         app_state["message"] = "Download concluído!"
         app_state["progress"] = 100
+        app_state["speed_mbps"] = 0
         
     except urllib.error.HTTPError as e:
         app_state["status"] = "error"
@@ -520,6 +535,7 @@ def download_dominio_worker(version=None, download_type='install'):
     app_state["status"] = "downloading"
     app_state["progress"] = 0
     app_state["message"] = f"Iniciando download do Domínio Sistemas ({version if version else 'Mais Recente'})..."
+    app_state["speed_mbps"] = 0
     
     # Remover arquivo antigo se existir
     if os.path.exists(destination_path):
@@ -552,12 +568,25 @@ def download_dominio_worker(version=None, download_type='install'):
                 dl = 0
                 block_size = 8192
                 
+                start_time = time.time()
+                last_time = start_time
+                last_dl = 0
+                
                 while True:
                     chunk = response.read(block_size)
                     if not chunk:
                         break
                     dl += len(chunk)
                     f.write(chunk)
+                    
+                    current_time = time.time()
+                    elapsed = current_time - last_time
+                    
+                    if elapsed >= 1.0: # Update speed every second
+                        speed = (dl - last_dl) / (1024 * 1024) / elapsed # MB/s
+                        app_state["speed_mbps"] = speed
+                        last_time = current_time
+                        last_dl = dl
                     
                     done_ratio = dl / total_length
                     app_state["progress"] = int(done_ratio * 100)
@@ -570,6 +599,7 @@ def download_dominio_worker(version=None, download_type='install'):
         app_state["status"] = "download_complete"
         app_state["message"] = "Download do Domínio Sistemas concluído!"
         app_state["progress"] = 100
+        app_state["speed_mbps"] = 0
         
         # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
         # (Isso é um hack rápido, idealmente o estado teria 'installer_type')
@@ -612,6 +642,7 @@ def download_buscanfe_worker(version=None):
     app_state["status"] = "downloading"
     app_state["progress"] = 0
     app_state["message"] = f"Iniciando download do Busca NF-e ({version if version else 'Mais Recente'})..."
+    app_state["speed_mbps"] = 0
     
     # Remover arquivo antigo se existir
     if os.path.exists(destination_path):
@@ -644,12 +675,25 @@ def download_buscanfe_worker(version=None):
                 dl = 0
                 block_size = 8192
                 
+                start_time = time.time()
+                last_time = start_time
+                last_dl = 0
+                
                 while True:
                     chunk = response.read(block_size)
                     if not chunk:
                         break
                     dl += len(chunk)
                     f.write(chunk)
+                    
+                    current_time = time.time()
+                    elapsed = current_time - last_time
+                    
+                    if elapsed >= 1.0: # Update speed every second
+                        speed = (dl - last_dl) / (1024 * 1024) / elapsed # MB/s
+                        app_state["speed_mbps"] = speed
+                        last_time = current_time
+                        last_dl = dl
                     
                     done_ratio = dl / total_length
                     app_state["progress"] = int(done_ratio * 100)
@@ -662,6 +706,7 @@ def download_buscanfe_worker(version=None):
         app_state["status"] = "download_complete"
         app_state["message"] = "Download do Busca NF-e concluído!"
         app_state["progress"] = 100
+        app_state["speed_mbps"] = 0
         
         # Atualiza o caminho do instalador para o endpoint de instalação saber qual executar
         app_state["installer_path"] = destination_path
