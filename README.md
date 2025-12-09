@@ -1,4 +1,11 @@
-# Assistente Técnico - Gerenciador de Instalações Domínio Sistemas
+<div align="center">
+
+# Assistente Técnico
+### Gerenciador de Instalações Domínio Sistemas
+
+[![Download](https://img.shields.io/github/v/release/PatrickSud/assistente-tecnico?label=Baixar%20Versão%20Mais%20Recente&style=for-the-badge&color=success)](https://github.com/PatrickSud/assistente-tecnico/releases/latest/download/Assistente_Tecnico.exe)
+
+</div>
 
 Aplicação web local desenvolvida em Flask para facilitar a instalação e atualização de aplicações da **Domínio Sistemas**: **Agente de Comunicação**, **Domínio Sistemas** e **Busca NF-e**.
 
@@ -45,11 +52,12 @@ Aplicação web local desenvolvida em Flask para facilitar a instalação e atua
 
 ## 🔧 Instalação
 
-### Opção 1: Executável (.exe) - Recomendado
+### Instalação Simplificada
 
-1. Baixe o arquivo `Assistente_Atualizador.exe` da [última release](https://github.com/PatrickSud/assistente-tecnico/releases/latest)
-2. Execute o arquivo (será solicitada elevação de privilégios)
-3. O navegador abrirá automaticamente com a interface
+1. Clique no botão **Baixar Versão Mais Recente** no topo da página.
+2. Aguarde o download do arquivo `Assistente_Tecnico.exe`.
+3. Execute o arquivo baixado.
+4. O assistente abrirá automaticamente no seu navegador.
 
 ### Opção 2: Executar via Python (Desenvolvimento)
 
@@ -85,7 +93,7 @@ recompilar.bat
 
 Ou manualmente:
 ```bash
-pyinstaller --clean Assistente_Atualizador.spec
+pyinstaller --clean Assistente_Tecnico.spec
 ```
 
 ## 🛠️ Estrutura do Projeto
@@ -93,7 +101,7 @@ pyinstaller --clean Assistente_Atualizador.spec
 ```
 .
 ├── app.py                          # Aplicação Flask principal
-├── Assistente_Atualizador.spec     # Configuração do PyInstaller
+├── Assistente_Tecnico.spec     # Configuração do PyInstaller
 ├── recompilar.bat                  # Script de recompilação
 ├── version.json                    # Informações de versão
 ├── templates/
@@ -104,7 +112,7 @@ pyinstaller --clean Assistente_Atualizador.spec
 │   └── Icone/
 │       └── app_icon.ico            # Ícone da aplicação
 └── dist/
-    └── Assistente_Atualizador.exe  # Executável compilado
+    └── Assistente_Tecnico.exe  # Executável compilado
 ```
 
 ## 💻 Uso
@@ -166,7 +174,7 @@ O ícone deve estar em `static/Icone/app_icon.ico`. Verifique se o arquivo exist
 
 ### Erro: "Permission denied" ao recompilar
 1. Feche todas as instâncias do executável
-2. Execute: `taskkill /F /IM Assistente_Atualizador.exe /T`
+2. Execute: `taskkill /F /IM Assistente_Tecnico.exe /T`
 3. Limpe as pastas: `rmdir /s /q build dist`
 4. Tente recompilar novamente
 
